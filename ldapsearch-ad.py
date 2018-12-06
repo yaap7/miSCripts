@@ -102,9 +102,6 @@ def get_search(args):
         f.close
 
 
-    # conn.extend.standard.paged_search('dc=demo1,dc=freeipa,dc=org', '(objectClass=person)', attributes=['cn', 'givenName'], paged_size=5)
-
-
 def main():
     # Parse arguments
     argParser = argparse.ArgumentParser(description="Active Directory LDAP Enumerator")
@@ -142,9 +139,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print(list_uac_flags(512))
-    print(list_uac_flags(4096))
-    print(list_uac_flags(1564823))
-    sys.exit(0)
     main()
 
