@@ -85,21 +85,28 @@ def get_search(args):
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     domain_username = '{}\\{}'.format(args.domain, args.username)
     logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
-    with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
-        base_dn = server.info.other.get('defaultNamingContext')[0]
-        logging.debug('Found base DN = {}'.format(base_dn))
-        logging.debug('Search filter = {}'.format(args.search_filter))
-        logging.debug('Looking for attributes = {}'.format(args.search_attributes))
-        conn.search(base_dn, args.search_filter, attributes=args.search_attributes, size_limit=args.size_limit)
-        entries = conn.entries
-    if args.output_file:
-        f = open(args.output_file, 'a')
-    for entry in entries:
-        logging.info('Entry = \n{}'.format(entry))
+    try:
+        with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
+            base_dn = server.info.other.get('defaultNamingContext')[0]
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(args.search_filter))
+            logging.debug('Looking for attributes = {}'.format(args.search_attributes))
+            conn.search(base_dn, args.search_filter, attributes=args.search_attributes, size_limit=args.size_limit)
+            entries = conn.entries
         if args.output_file:
-            f.write('{}\n'.format(entry.entry_to_json()))
-    if args.output_file:
-        f.close
+            f = open(args.output_file, 'a')
+        if not entries:
+            logging.info('No result found.')
+        for entry in entries:
+            logging.info('Entry = \n{}'.format(entry))
+            if args.output_file:
+                f.write('{}\n'.format(entry.entry_to_json()))
+        if args.output_file:
+            f.close
+    except ldap3.core.exceptions.LDAPBindError as e:
+        logging.error('{}'.format(e))
+    except ldap3.core.exceptions.LDAPInvalidFilterError as e:
+        logging.error('{} (perhaps missing parenthesis?)'.format(e))
 
 
 def main():
@@ -112,10 +119,21 @@ def main():
     argParser.add_argument('-p', '--password', dest='password', help='Authentication account\'s password.')
     argParser.add_argument('-s', '--search-filter', dest='search_filter', help='Search filter (use LDAP format).')
     argParser.add_argument('search_attributes', default='*', nargs='*', help='LDAP attributes to look for.')
-    argParser.add_argument('-z', '--size_limit', dest='size_limit', default=None, help='Size limit (default is server\'s limit).')
+    argParser.add_argument('-z', '--size_limit', dest='size_limit', default=10, help='Size limit (default is server\'s limit).')
     argParser.add_argument('-o', '--output', dest='output_file', help='Write results in specified file too.')
     argParser.add_argument('-v', '--verbose', dest='verbosity', help='Turn on debug mode', action='store_true')
     args = argParser.parse_args()
+
+    # Set mandatory arguments for each request_type
+    mandatory_arguments = {}
+    mandatory_arguments['info'] = []
+    mandatory_arguments['whoami'] = ['domain', 'username', 'password']
+    mandatory_arguments['search'] = ['domain', 'username', 'password', 'search_filter']
+    if args.request_type not in mandatory_arguments.keys():
+        argParser.error('request type must be one of: {}.'.format(', '.join(mandatory_arguments.keys())))
+    for mandatory_argument in mandatory_arguments[args.request_type]:
+        if vars(args)[mandatory_argument] is None:
+            argParser.error('{} argument is mandatory with request type = {}'.format(mandatory_argument, args.request_type))
 
     # Configure logging
     logLevel = logging.INFO
@@ -123,10 +141,6 @@ def main():
         logLevel = logging.DEBUG
     logging.basicConfig(level=logLevel, format='%(asctime)-19s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d_%H:%M:%S')
 
-
-    # Set mandatory arguments for each request_type
-    mandatory_arguments = {}
-    mandatory_arguments['whoami'] = ['domain', 'username', 'password']
 
     if args.request_type == 'info':
         get_server_info(args)
