@@ -57,6 +57,60 @@ def list_uac_flags(uac):
     return flags
 
 
+def list_trustType(trustType):
+    '''Show the trust type as defined here: https://msdn.microsoft.com/en-us/library/cc223771.aspx'''
+    if trustType == 1:
+        return 'The trusted domain is a Windows domain not running Active Directory.'
+    elif trustType == 2:
+        return 'The trusted domain is a Windows domain running Active Directory.'
+    elif trustType == 3:
+        return 'The trusted domain is running a non-Windows, RFC4120-compliant Kerberos distribution.'
+    elif trustType == 4:
+        return 'Historical reference; this value is not used in Windows.'
+    else:
+        return 'Error: unknown value.'
+
+
+def list_trustDirection(trustDirection):
+    '''Show the trust direction as defined here: https://msdn.microsoft.com/en-us/library/cc223768.aspx'''
+    if trustDirection == 0:
+        return 'Disabled'
+    elif trustDirection == 1:
+        return 'Outbound'
+    elif trustDirection == 2:
+        return 'Inbound'
+    elif trustDirection == 3:
+        return 'Bidirectional'
+    else:
+        return 'Error: unknown value.'
+
+
+def list_trustAttributes(ta):
+    '''Return the trust attribute flags as defined here: https://msdn.microsoft.com/en-us/library/cc223779.aspx'''
+    flags = []
+    if ta & 0x1 > 0:
+        flags.append('TRUST_ATTRIBUTE_NON_TRANSITIVE')
+    if ta & 0x2 > 0:
+        flags.append('TRUST_ATTRIBUTE_UPLEVEL_ONLY')
+    if ta & 0x4 > 0:
+        flags.append('TRUST_ATTRIBUTE_QUARANTINED_DOMAIN')
+    if ta & 0x8 > 0:
+        flags.append('TRUST_ATTRIBUTE_FOREST_TRANSITIVE')
+    if ta & 0x10 > 0:
+        flags.append('TRUST_ATTRIBUTE_CROSS_ORGANIZATION')
+    if ta & 0x20 > 0:
+        flags.append('TRUST_ATTRIBUTE_WITHIN_FOREST')
+    if ta & 0x40 > 0:
+        flags.append('TRUST_ATTRIBUTE_TREAT_AS_EXTERNAL')
+    if ta & 0x80 > 0:
+        flags.append('TRUST_ATTRIBUTE_USES_RC4_ENCRYPTION')
+    if ta & 0x200 > 0:
+        flags.append('TRUST_ATTRIBUTE_CROSS_ORGANIZATION_NO_TGT_DELEGATION')
+    if ta & 0x400 > 0:
+        flags.append('TRUST_ATTRIBUTE_PIM_TRUST')
+    return flags
+
+
 def get_server_info(args):
     logging.info('Getting info from LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
@@ -109,11 +163,91 @@ def get_search(args):
         logging.error('{} (perhaps missing parenthesis?)'.format(e))
 
 
+
+def return_trust_infos(trust):
+    r = '{} ({})\n'.format(trust.name.value, trust.flatName.value)
+    r += '    trustAttributes = {}\n'.format(list_trustAttributes(trust.trustAttributes.value))
+    r += '    trustDirection = {}\n'.format(list_trustDirection(trust.trustDirection.value))
+    r += '    trustType = {}\n'.format(list_trustType(trust.trustType.value))
+    r += '    trustPartner = {}\n'.format(trust.trustPartner.value)
+    r += '    securityIdentifier = {}\n'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value))
+    r += '    whenCreated = {}\n'.format(trust.whenCreated.value)
+    r += '    whenChanged = {}\n'.format(trust.whenChanged.value)
+    return r
+
+
+def get_trusts(args):
+    logging.info('Looking for trusts on LDAP server {}'.format(args.ldap_server))
+    server = ldap3.Server(args.ldap_server, get_info='ALL')
+    domain_username = '{}\\{}'.format(args.domain, args.username)
+    logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
+    try:
+        with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
+            search_filter = '(objectClass=trustedDomain)'
+            search_attributes = '*'
+            size_limit = 50
+            base_dn = server.info.other.get('defaultNamingContext')[0]
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(search_filter))
+            logging.debug('Looking for attributes = {}'.format(search_attributes))
+            conn.search(base_dn, search_filter, attributes=search_attributes, size_limit=size_limit)
+            entries = conn.entries
+        if args.output_file:
+            f = open(args.output_file, 'a')
+        if not entries:
+            logging.info('No trusts found.')
+        for entry in entries:
+            logging.info('Trust = {}'.format(return_trust_infos(entry)))
+            if args.output_file:
+                f.write('{}\n'.format(entry.entry_to_json()))
+        if args.output_file:
+            f.close
+    except ldap3.core.exceptions.LDAPBindError as e:
+        logging.error('{}'.format(e))
+    # except Exception as e:
+    #     logging.error('{}'.format(e))
+
+
+
+def get_test(args):
+    logging.info('Searching on LDAP server {}'.format(args.ldap_server))
+    server = ldap3.Server(args.ldap_server, get_info='ALL')
+    domain_username = '{}\\{}'.format(args.domain, args.username)
+    logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
+    try:
+        with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
+            search_filter = "(&(objectClass=user)(servicePrincipalName=*)(!(objectClass=computer))(!(cn=krbtgt))(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"
+            search_attributes = ['cn', 'servicePrincipalName', 'samaccountname', 'userAccountControl']
+            size_limit = 10
+            base_dn = server.info.other.get('defaultNamingContext')[0]
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(search_filter))
+            logging.debug('Looking for attributes = {}'.format(search_attributes))
+            conn.search(base_dn, search_filter, attributes=search_attributes, size_limit=size_limit)
+            entries = conn.entries
+        if args.output_file:
+            f = open(args.output_file, 'a')
+        if not entries:
+            logging.info('No result found.')
+        for entry in entries:
+            logging.info('Entry = \n{}'.format(entry))
+            if args.output_file:
+                f.write('{}\n'.format(entry.entry_to_json()))
+        if args.output_file:
+            f.close
+    except ldap3.core.exceptions.LDAPBindError as e:
+        logging.error('{}'.format(e))
+    except ldap3.core.exceptions.LDAPInvalidFilterError as e:
+        logging.error('{} (perhaps missing parenthesis?)'.format(e))
+    # except Exception as e:
+    #     logging.error('{}'.format(e))
+
+
 def main():
     # Parse arguments
     argParser = argparse.ArgumentParser(description="Active Directory LDAP Enumerator")
     argParser.add_argument('-l', '--server', required=True, dest='ldap_server', help='IP address of the LDAP server.')
-    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, TODO')
+    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, TODO')
     argParser.add_argument('-d', '--domain', dest='domain', help='Authentication account\'s FQDN. Example: "contoso.local".')
     argParser.add_argument('-u', '--username', dest='username', help='Authentication account\'s username.')
     argParser.add_argument('-p', '--password', dest='password', help='Authentication account\'s password.')
@@ -129,17 +263,24 @@ def main():
     mandatory_arguments['info'] = []
     mandatory_arguments['whoami'] = ['domain', 'username', 'password']
     mandatory_arguments['search'] = ['domain', 'username', 'password', 'search_filter']
+    mandatory_arguments['trusts'] = ['domain', 'username', 'password']
+    mandatory_arguments['test'] = ['domain', 'username', 'password']
     if args.request_type not in mandatory_arguments.keys():
         argParser.error('request type must be one of: {}.'.format(', '.join(mandatory_arguments.keys())))
     for mandatory_argument in mandatory_arguments[args.request_type]:
         if vars(args)[mandatory_argument] is None:
             argParser.error('{} argument is mandatory with request type = {}'.format(mandatory_argument, args.request_type))
 
-    # Configure logging
-    logLevel = logging.INFO
+    # Configure logging to stdout
+    logger = logging.getLogger()
+    handler = logging.StreamHandler(sys.stdout)
     if args.verbosity:
-        logLevel = logging.DEBUG
-    logging.basicConfig(level=logLevel, format='%(asctime)-19s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d_%H:%M:%S')
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(fmt='%(asctime)-19s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d_%H:%M:%S')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 
     if args.request_type == 'info':
@@ -148,6 +289,10 @@ def main():
         get_whoami(args)
     elif args.request_type == 'search':
         get_search(args)
+    elif args.request_type == 'trusts':
+        get_trusts(args)
+    elif args.request_type == 'test':
+        get_test(args)
     else:
         logging.error('Error: no request type supplied. (Please use "-t")')
 
