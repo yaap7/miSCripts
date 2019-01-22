@@ -5,6 +5,16 @@
 Python3 script to quickly create a POC of user enumeration through a web application.
 
 
+## extract-infos-from-pcap.py
+
+Python3 script to all juicy information from a pcap file. Used for passive network recon.
+
+TODO:
+* use `argparse` for a nice usage message;
+* retrieve the `originating vlan` in STP;
+* retrive all information from LLDP trames.
+
+
 ## extract-ports-from-nessus.py
 
 Python3 script to retrieve a list of IP addresses which listened on a specific port from a nessus (broken XML) file.
