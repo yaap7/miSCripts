@@ -24,7 +24,9 @@ Python3 script to retrieve a list of IP addresses which listened on a specific p
 
 Python3 script to get various information from a domain controller through his LDAP service.
 
-TODO: better explain the usage here.
+TODO:
+* better explain the usage here.
+* add pretty output for other functions (get-user, get-spn, etc) while keeping a json output.
 
 
 ## lyncsmash_gg.py
