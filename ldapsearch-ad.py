@@ -345,17 +345,137 @@ def get_trusts(args):
     #     logging.error('{}'.format(e))
 
 
+'''
+    msDS-LockoutDuration: -18000000000
+    msDS-LockoutObservationWindow: -18000000000
+    msDS-LockoutThreshold: 5
+    msDS-MaximumPasswordAge: -155520000000000
+    msDS-MinimumPasswordAge: -864000000000
+    msDS-MinimumPasswordLength: 12
+    msDS-PasswordComplexityEnabled: True
+    msDS-PasswordHistoryLength: 2
+    msDS-PasswordReversibleEncryptionEnabled: False
+    msDS-PasswordSettingsPrecedence: 5
+'''
+
+def return_show_default_pass_pol(pass_pol):
+    r = ['Default password policy:']
+    attributes = pass_pol.entry_attributes_as_dict
+    pass_len = attributes['minPwdLength'][0]
+    # Password length
+    if pass_len < 8:
+        r.append('    Minimum password length = {}'.format(c_red(pass_len)))
+    elif pass_len < 12:
+        r.append('    Minimum password length = {}'.format(c_orange(pass_len)))
+    else:
+        r.append('    Minimum password length = {}'.format(c_green(pass_len)))
+    # Password properties as described here: https://ldapwiki.com/wiki/PwdProperties
+    pass_properties = attributes['pwdProperties'][0]
+    if pass_properties & 1 > 0:
+        r.append('    Password complexity = {}'.format(c_green('Enabled')))
+    # Lockout settings
+    if attributes['lockoutThreshold'][0] == 0:
+        r.append('    Lockout threshold = {}'.format(c_white_on_red('Disabled')))
+    else:
+        r.append('    Lockout threshold = {}'.format((attributes['lockoutThreshold'][0])))
+        r.append('      Lockout duration = {}'.format((attributes['lockoutDuration'][0])))
+        r.append('      Lockout observation window = {}'.format((attributes['lockOutObservationWindow'][0])))
+    return r
+
+
+def return_show_pass_pol(pass_pol):
+    r = ['Fined grained password policy found: {}'.format(c_cyan(pass_pol.cn.value))]
+    attributes = pass_pol.entry_attributes_as_dict
+    r.append('    Password settings precedence = {}'.format(attributes['msDS-PasswordSettingsPrecedence'][0]))
+    pass_len = attributes['msDS-MinimumPasswordLength'][0]
+    # Password length
+    if pass_len < 8:
+        r.append('    Minimum password length = {}'.format(c_red(pass_len)))
+    elif pass_len < 12:
+        r.append('    Minimum password length = {}'.format(c_orange(pass_len)))
+    else:
+        r.append('    Minimum password length = {}'.format(c_green(pass_len)))
+    # Password complexity
+    if attributes['msDS-PasswordComplexityEnabled'][0]:
+        r.append('    Password complexity enabled = {}'.format(c_green(attributes['msDS-PasswordComplexityEnabled'][0])))
+    else:
+        r.append('    Password complexity enabled = {}'.format(c_red(attributes['msDS-PasswordComplexityEnabled'][0])))
+    # Password reversible encryption?
+    if attributes['msDS-PasswordReversibleEncryptionEnabled'][0]:
+        r.append('    Password reversible encryption enabled = {}'.format(c_white_on_red(attributes['msDS-PasswordReversibleEncryptionEnabled'][0])))
+    else:
+        r.append('    Password reversible encryption enabled = {}'.format((attributes['msDS-PasswordReversibleEncryptionEnabled'][0])))
+    # Lockout settings
+    if attributes['msDS-LockoutThreshold'][0] == 0:
+        r.append('    Lockout threshold = {}'.format(c_white_on_red('Disabled')))
+    else:
+        r.append('    Lockout threshold = {}'.format((attributes['msDS-LockoutThreshold'][0])))
+        r.append('      Lockout duration = {}'.format((attributes['msDS-LockoutDuration'][0])))
+        r.append('      Lockout observation window = {}'.format((attributes['msDS-LockoutObservationWindow'][0])))
+    return r
+
+
+def get_pass_pols(args):
+    logging.info('Looking for all password policies on LDAP server {}'.format(args.ldap_server))
+    server = ldap3.Server(args.ldap_server, get_info='ALL')
+    domain_username = '{}\\{}'.format(args.domain, args.username)
+    logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
+    try:
+        with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
+            search_filter = '(objectClass=domainDNS)'
+            base_dn = server.info.other.get('defaultNamingContext')[0]
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(search_filter))
+            logging.debug('Looking for attributes = {}'.format(args.search_attributes))
+            conn.search(base_dn, search_filter, attributes=args.search_attributes, size_limit=args.size_limit)
+            entries = conn.entries
+            if not entries:
+                logging.info('No default password policy found, maybe an error in the script (try to change the hardcoded filter).')
+            else:
+                if args.output_file:
+                    f = open(args.output_file, 'a')
+                for entry in entries:
+                    for out_line in return_show_default_pass_pol(entry):
+                        logging.info(out_line)
+                    if args.output_file:
+                        f.write('{}\n'.format(entry.entry_to_json()))
+                if args.output_file:
+                    f.close
+            search_filter = '(objectClass=MsDS-PasswordSettings)'
+            base_dn = server.info.other.get('defaultNamingContext')[0]
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(search_filter))
+            logging.debug('Looking for attributes = {}'.format(args.search_attributes))
+            conn.search(base_dn, search_filter, attributes=args.search_attributes, size_limit=args.size_limit)
+            entries = conn.entries
+            if not entries:
+                logging.info('No fine grained password policy found (high privileges are often required).')
+            else:
+                if args.output_file:
+                    f = open(args.output_file, 'a')
+                for entry in entries:
+                    for out_line in return_show_pass_pol(entry):
+                        logging.info(out_line)
+                    if args.output_file:
+                        f.write('{}\n'.format(entry.entry_to_json()))
+                if args.output_file:
+                    f.close
+    except ldap3.core.exceptions.LDAPBindError as e:
+        logging.error('{}'.format(e))
+
+
 def return_show_user(user):
-    r = '{}\n'.format(user.samAccountName.value)
+    r = ['User found: {}'.format(c_cyan(user.displayName.value))]
+    r.append('samAccountName = {}'.format(user.samAccountName.value))
     if 'adminCount' in user.entry_attributes_as_dict.keys():
         if user.admincount.value == 1:
-            r += '{}\n'.format(c_red('The adminCount is set to 1!'))
+            r.append('{}'.format(c_red('The adminCount is set to 1!')))
         elif user.admincount.value == 0:
             pass
         else:
-            r += c_purple('Unknown value for adminCount: {}\n'.format(user.admincount.value))
-    r += 'userAccountControl = {}\n'.format(list_uac_colored_flags(user.userAccountControl.value))
-    r += 'sAMAccountType = {}\n'.format(list_samaccounttype(user.samaccounttype.value))
+            r.append(c_purple('Unknown value for adminCount: {}'.format(user.admincount.value)))
+    r.append('userAccountControl = {}'.format(list_uac_colored_flags(user.userAccountControl.value)))
+    r.append('sAMAccountType = {}'.format(list_samaccounttype(user.samaccounttype.value)))
     groups = []
     for group in user.memberOf.value:
         group_cn = re.search('CN=([^,]*),', group).group(1)
@@ -365,13 +485,12 @@ def return_show_user(user):
             groups.append(c_orange(group_cn))
         else:
             groups.append(group_cn)
-    r += 'memberOf = {}\n'.format(', '.join(groups))
+    r.append('memberOf = {}'.format(', '.join(groups)))
     return r
 
 
-
-def get_show(args):
-    logging.info('Searching on LDAP server {}'.format(args.ldap_server))
+def get_show_user(args):
+    logging.info('Looking for users on LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     domain_username = '{}\\{}'.format(args.domain, args.username)
     logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
@@ -391,7 +510,8 @@ def get_show(args):
         if not entries:
             logging.info('No result found.')
         for entry in entries:
-            logging.info('Show User = {}'.format(return_show_user(entry)))
+            for out_line in return_show_user(entry):
+                logging.info(out_line)
             if args.output_file:
                 f.write('{}\n'.format(entry.entry_to_json()))
         if args.output_file:
@@ -408,7 +528,7 @@ def main():
     # Parse arguments
     argParser = argparse.ArgumentParser(description="Active Directory LDAP Enumerator")
     argParser.add_argument('-l', '--server', required=True, dest='ldap_server', help='IP address of the LDAP server.')
-    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, TODO')
+    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, show-user, pass-pol, TODO')
     argParser.add_argument('-d', '--domain', dest='domain', help='Authentication account\'s FQDN. Example: "contoso.local".')
     argParser.add_argument('-u', '--username', dest='username', help='Authentication account\'s username.')
     argParser.add_argument('-p', '--password', dest='password', help='Authentication account\'s password.')
@@ -425,7 +545,8 @@ def main():
     mandatory_arguments['whoami'] = ['domain', 'username', 'password']
     mandatory_arguments['search'] = ['domain', 'username', 'password', 'search_filter']
     mandatory_arguments['trusts'] = ['domain', 'username', 'password']
-    mandatory_arguments['show'] = ['domain', 'username', 'password', 'search_filter']
+    mandatory_arguments['pass-pols'] = ['domain', 'username', 'password']
+    mandatory_arguments['show-user'] = ['domain', 'username', 'password', 'search_filter']
     if args.request_type not in mandatory_arguments.keys():
         argParser.error('request type must be one of: {}.'.format(', '.join(mandatory_arguments.keys())))
     for mandatory_argument in mandatory_arguments[args.request_type]:
@@ -437,9 +558,10 @@ def main():
     handler = logging.StreamHandler(sys.stdout)
     if args.verbosity:
         logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(fmt='%(asctime)-19s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d_%H:%M:%S')
     else:
         logger.setLevel(logging.INFO)
-    formatter = logging.Formatter(fmt='%(asctime)-19s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d_%H:%M:%S')
+        formatter = logging.Formatter(fmt='%(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -452,8 +574,10 @@ def main():
         get_search(args)
     elif args.request_type == 'trusts':
         get_trusts(args)
-    elif args.request_type == 'show':
-        get_show(args)
+    elif args.request_type == 'pass-pols':
+        get_pass_pols(args)
+    elif args.request_type == 'show-user':
+        get_show_user(args)
     else:
         logging.error('Error: no request type supplied. (Please use "-t")')
 
