@@ -31,6 +31,22 @@ def c_white_on_red(message):
     return '\x1b[1;37;41m{}\x1b[0m'.format(message)
 
 
+def return_human_date(date):
+    nb_sec = int((- date ) / 10000000)
+    if nb_sec > 60 :
+        nb_min = int(nb_sec / 60)
+        nb_sec = nb_sec % 60
+        if nb_min > 60:
+            nb_hour = int(nb_min / 60)
+            nb_min = nb_min % 60
+            if nb_hour > 24:
+                nb_day = int(nb_hour / 24)
+                nb_hour = nb_hour % 24
+                return '{} days, {} hours, {} minutes, {} secondes'.format(nb_day, nb_hour, nb_min, nb_sec)
+            return '{} hours, {} minutes, {} secondes'.format(nb_hour, nb_min, nb_sec)
+        return '{} minutes, {} secondes'.format(nb_min, nb_sec)
+    return '{} secondes'.format(nb_sec)
+
 
 def list_functionality_level(num):
     ''' Return the functionality level as described at:
@@ -345,20 +361,9 @@ def get_trusts(args):
     #     logging.error('{}'.format(e))
 
 
-'''
-    msDS-LockoutDuration: -18000000000
-    msDS-LockoutObservationWindow: -18000000000
-    msDS-LockoutThreshold: 5
-    msDS-MaximumPasswordAge: -155520000000000
-    msDS-MinimumPasswordAge: -864000000000
-    msDS-MinimumPasswordLength: 12
-    msDS-PasswordComplexityEnabled: True
-    msDS-PasswordHistoryLength: 2
-    msDS-PasswordReversibleEncryptionEnabled: False
-    msDS-PasswordSettingsPrecedence: 5
-'''
-
 def return_show_default_pass_pol(pass_pol):
+    ''' Return a list of strings containing infos about
+        the default password policy. '''
     r = ['Default password policy:']
     attributes = pass_pol.entry_attributes_as_dict
     pass_len = attributes['minPwdLength'][0]
@@ -377,9 +382,9 @@ def return_show_default_pass_pol(pass_pol):
     if attributes['lockoutThreshold'][0] == 0:
         r.append('    Lockout threshold = {}'.format(c_white_on_red('Disabled')))
     else:
-        r.append('    Lockout threshold = {}'.format((attributes['lockoutThreshold'][0])))
-        r.append('      Lockout duration = {}'.format((attributes['lockoutDuration'][0])))
-        r.append('      Lockout observation window = {}'.format((attributes['lockOutObservationWindow'][0])))
+        r.append('    Lockout threshold = {}'.format(attributes['lockoutThreshold'][0]))
+        r.append('      Lockout duration = {}'.format(return_human_date(attributes['lockoutDuration'][0])))
+        r.append('      Lockout observation window = {}'.format(return_human_date(attributes['lockOutObservationWindow'][0])))
     return r
 
 
@@ -404,14 +409,14 @@ def return_show_pass_pol(pass_pol):
     if attributes['msDS-PasswordReversibleEncryptionEnabled'][0]:
         r.append('    Password reversible encryption enabled = {}'.format(c_white_on_red(attributes['msDS-PasswordReversibleEncryptionEnabled'][0])))
     else:
-        r.append('    Password reversible encryption enabled = {}'.format((attributes['msDS-PasswordReversibleEncryptionEnabled'][0])))
+        r.append('    Password reversible encryption enabled = {}'.format(attributes['msDS-PasswordReversibleEncryptionEnabled'][0]))
     # Lockout settings
     if attributes['msDS-LockoutThreshold'][0] == 0:
         r.append('    Lockout threshold = {}'.format(c_white_on_red('Disabled')))
     else:
-        r.append('    Lockout threshold = {}'.format((attributes['msDS-LockoutThreshold'][0])))
-        r.append('      Lockout duration = {}'.format((attributes['msDS-LockoutDuration'][0])))
-        r.append('      Lockout observation window = {}'.format((attributes['msDS-LockoutObservationWindow'][0])))
+        r.append('    Lockout threshold = {}'.format(attributes['msDS-LockoutThreshold'][0]))
+        r.append('      Lockout duration = {}'.format(return_human_date(attributes['msDS-LockoutDuration'][0])))
+        r.append('      Lockout observation window = {}'.format(return_human_date(attributes['msDS-LockoutObservationWindow'][0])))
     return r
 
 
@@ -477,7 +482,14 @@ def return_show_user(user):
     r.append('userAccountControl = {}'.format(list_uac_colored_flags(user.userAccountControl.value)))
     r.append('sAMAccountType = {}'.format(list_samaccounttype(user.samaccounttype.value)))
     groups = []
-    for group in user.memberOf.value:
+    # dirty patch because "memberOf.value" return a string if there is only one group
+    # and a list a string if there is more than one group
+    logging.debug('type of memberOf = {}'.format(type(user.memberOf.value)))
+    if isinstance(user.memberOf.value, str):
+        groups_raw = [user.memberOf.value]
+    else:
+        groups_raw = user.memberOf.value
+    for group in groups_raw:
         group_cn = re.search('CN=([^,]*),', group).group(1)
         if re.search('domain admins', group_cn, re.IGNORECASE):
             groups.append(c_red(group_cn))
@@ -528,7 +540,7 @@ def main():
     # Parse arguments
     argParser = argparse.ArgumentParser(description="Active Directory LDAP Enumerator")
     argParser.add_argument('-l', '--server', required=True, dest='ldap_server', help='IP address of the LDAP server.')
-    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, show-user, pass-pol, TODO')
+    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, pass-pols, show-domain-admins, show-user, TODO')
     argParser.add_argument('-d', '--domain', dest='domain', help='Authentication account\'s FQDN. Example: "contoso.local".')
     argParser.add_argument('-u', '--username', dest='username', help='Authentication account\'s username.')
     argParser.add_argument('-p', '--password', dest='password', help='Authentication account\'s password.')
@@ -546,6 +558,7 @@ def main():
     mandatory_arguments['search'] = ['domain', 'username', 'password', 'search_filter']
     mandatory_arguments['trusts'] = ['domain', 'username', 'password']
     mandatory_arguments['pass-pols'] = ['domain', 'username', 'password']
+    mandatory_arguments['show-domain-admins'] = ['domain', 'username', 'password']
     mandatory_arguments['show-user'] = ['domain', 'username', 'password', 'search_filter']
     if args.request_type not in mandatory_arguments.keys():
         argParser.error('request type must be one of: {}.'.format(', '.join(mandatory_arguments.keys())))
@@ -576,6 +589,8 @@ def main():
         get_trusts(args)
     elif args.request_type == 'pass-pols':
         get_pass_pols(args)
+    elif args.request_type == 'show-domain-admins':
+        logging.error('Error: implement this part. read https://confluence.atlassian.com/kb/how-to-write-ldap-search-filters-792496933.html for nested groups')
     elif args.request_type == 'show-user':
         get_show_user(args)
     else:
