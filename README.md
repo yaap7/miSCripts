@@ -78,3 +78,10 @@ Same as the original `split` but split on "new line" (simple wrapper around `hea
 
 **usage**: `split-lines big_file.txt 100`
     will create chunks of 100 lines in big_file.txt-00, big_file.txt-01, etc.
+
+
+## unhex-passwords.py
+
+Used for parsing the output of hashcat: replace every occurence of `$HEX[...]` by the decoded hex string between brackets.
+
+**usage**: `cat hashcat-output.txt | ./unhex-passwords.py | tee hashcat-output-clean.txt`
