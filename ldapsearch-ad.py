@@ -31,7 +31,7 @@ def c_white_on_red(message):
     return '\x1b[1;37;41m{}\x1b[0m'.format(message)
 
 
-def return_human_date(date):
+def str_human_date(date):
     nb_sec = int((- date ) / 10000000)
     if nb_sec > 60 :
         nb_min = int(nb_sec / 60)
@@ -131,23 +131,23 @@ def list_uac_colored_flags(uac):
     if uac & 0x8 > 0:
         flags.append('HOMEDIR_REQUIRED')
     if uac & 0x10 > 0:
-        flags.append(c_cyan('LOCKOUT'))
+        flags.append(c_orange('LOCKOUT'))
     if uac & 0x20 > 0:
-        flags.append(c_red('PASSWD_NOTREQD'))
+        flags.append(c_white_on_red('PASSWD_NOTREQD'))
     if uac & 0x40 > 0:
-        flags.append(c_orange('PASSWD_CANT_CHANGE'))
+        flags.append(c_red('PASSWD_CANT_CHANGE'))
     if uac & 0x80 > 0:
-        flags.append(c_red('ENCRYPTED_TEXT_PWD_ALLOWED'))
+        flags.append(c_white_on_red('ENCRYPTED_TEXT_PWD_ALLOWED'))
     if uac & 0x100 > 0:
         flags.append('TEMP_DUPLICATE_ACCOUNT')
     if uac & 0x200 > 0:
         flags.append('NORMAL_ACCOUNT')
     if uac & 0x800 > 0:
-        flags.append('INTERDOMAIN_TRUST_ACCOUNT')
+        flags.append(c_cyan('INTERDOMAIN_TRUST_ACCOUNT'))
     if uac & 0x1000 > 0:
-        flags.append('WORKSTATION_TRUST_ACCOUNT')
+        flags.append(c_cyan('WORKSTATION_TRUST_ACCOUNT'))
     if uac & 0x2000 > 0:
-        flags.append('SERVER_TRUST_ACCOUNT')
+        flags.append(c_cyan('SERVER_TRUST_ACCOUNT'))
     if uac & 0x10000 > 0:
         flags.append(c_red('DONT_EXPIRE_PASSWORD'))
     if uac & 0x20000 > 0:
@@ -155,23 +155,23 @@ def list_uac_colored_flags(uac):
     if uac & 0x40000 > 0:
         flags.append('SMARTCARD_REQUIRED')
     if uac & 0x80000 > 0:
-        flags.append('TRUSTED_FOR_DELEGATION')
+        flags.append(c_orange('TRUSTED_FOR_DELEGATION'))
     if uac & 0x100000 > 0:
         flags.append('NOT_DELEGATED')
     if uac & 0x200000 > 0:
         flags.append(c_red('USE_DES_KEY_ONLY'))
     if uac & 0x400000 > 0:
-        flags.append('DONT_REQ_PREAUTH')
+        flags.append(c_cyan('DONT_REQ_PREAUTH'))
     if uac & 0x800000 > 0:
         flags.append(c_cyan('PASSWORD_EXPIRED'))
     if uac & 0x1000000 > 0:
         flags.append(c_orange('TRUSTED_TO_AUTH_FOR_DELEGATION'))
     if uac & 0x04000000 > 0:
         flags.append('PARTIAL_SECRETS_ACCOUNT')
-    return ', '.join(flags)
+    return flags
 
 
-def list_samaccounttype(sat):
+def str_samaccounttype(sat):
     ''' Return the SAM-Account-Type as described at:
     https://docs.microsoft.com/en-us/windows/desktop/adschema/a-samaccounttype '''
     if sat == 0x0:
@@ -200,6 +200,23 @@ def list_samaccounttype(sat):
         return 'SAM_ACCOUNT_TYPE_MAX'
     else:
         return 'Error: unknown value'
+
+
+def str_object_type(entry):
+    if 'sAMAccountType' in entry.entry_attributes_as_dict.keys():
+        sat = entry.sAMAccountType.value
+        if sat == 0x0:
+            return 'domain'
+        elif sat == 0x10000000:
+            return 'group'
+        elif sat == 0x30000000:
+            return 'user'
+        elif sat == 0x30000001:
+            return 'computer'
+        else:
+            return 'sAMAccountType = {}. Please complete this script.'.format(sat)
+    else:
+        return 'Unable to find correct type (sAMAccountType not present).'
 
 
 
@@ -287,7 +304,7 @@ def get_whoami(args):
             f.write('You are: {}\n'.format(whoami))
 
 
-def get_search(args):
+def search(args):
     logging.info('Searching on LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     domain_username = '{}\\{}'.format(args.domain, args.username)
@@ -318,14 +335,15 @@ def get_search(args):
 
 
 def return_trust_infos(trust):
-    r = '{} ({})\n'.format(trust.name.value, trust.flatName.value)
-    r += '    trustAttributes = {}\n'.format(list_trustAttributes(trust.trustAttributes.value))
-    r += '    trustDirection = {}\n'.format(list_trustDirection(trust.trustDirection.value))
-    r += '    trustType = {}\n'.format(list_trustType(trust.trustType.value))
-    r += '    trustPartner = {}\n'.format(trust.trustPartner.value)
-    r += '    securityIdentifier = {}\n'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value))
-    r += '    whenCreated = {}\n'.format(trust.whenCreated.value)
-    r += '    whenChanged = {}\n'.format(trust.whenChanged.value)
+    ''' TODO : change this method to return a list '''
+    r = '+ {} ({})\n'.format(trust.name.value, trust.flatName.value)
+    r += '|___trustAttributes = {}\n'.format(list_trustAttributes(trust.trustAttributes.value))
+    r += '|___trustDirection = {}\n'.format(list_trustDirection(trust.trustDirection.value))
+    r += '|___trustType = {}\n'.format(list_trustType(trust.trustType.value))
+    r += '|___trustPartner = {}\n'.format(trust.trustPartner.value)
+    r += '|___securityIdentifier = {}\n'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value))
+    r += '|___whenCreated = {}\n'.format(trust.whenCreated.value)
+    r += '|___whenChanged = {}\n'.format(trust.whenChanged.value)
     return r
 
 
@@ -337,13 +355,12 @@ def get_trusts(args):
     try:
         with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
             search_filter = '(objectClass=trustedDomain)'
-            search_attributes = '*'
             size_limit = 50
             base_dn = server.info.other.get('defaultNamingContext')[0]
             logging.debug('Found base DN = {}'.format(base_dn))
             logging.debug('Search filter = {}'.format(search_filter))
             logging.debug('Looking for attributes = {}'.format(search_attributes))
-            conn.search(base_dn, search_filter, attributes=search_attributes, size_limit=size_limit)
+            conn.search(base_dn, search_filter, attributes=args.search_attributes, size_limit=size_limit)
             entries = conn.entries
         if args.output_file:
             f = open(args.output_file, 'a')
@@ -357,66 +374,64 @@ def get_trusts(args):
             f.close
     except ldap3.core.exceptions.LDAPBindError as e:
         logging.error('{}'.format(e))
-    # except Exception as e:
-    #     logging.error('{}'.format(e))
 
 
-def return_show_default_pass_pol(pass_pol):
+def list_default_pass_pol(pass_pol):
     ''' Return a list of strings containing infos about
         the default password policy. '''
-    r = ['Default password policy:']
+    r = ['+ Default password policy:']
     attributes = pass_pol.entry_attributes_as_dict
     pass_len = attributes['minPwdLength'][0]
     # Password length
     if pass_len < 8:
-        r.append('    Minimum password length = {}'.format(c_red(pass_len)))
+        r.append('|___Minimum password length = {}'.format(c_red(pass_len)))
     elif pass_len < 12:
-        r.append('    Minimum password length = {}'.format(c_orange(pass_len)))
+        r.append('|___Minimum password length = {}'.format(c_orange(pass_len)))
     else:
-        r.append('    Minimum password length = {}'.format(c_green(pass_len)))
+        r.append('|___Minimum password length = {}'.format(c_green(pass_len)))
     # Password properties as described here: https://ldapwiki.com/wiki/PwdProperties
     pass_properties = attributes['pwdProperties'][0]
     if pass_properties & 1 > 0:
-        r.append('    Password complexity = {}'.format(c_green('Enabled')))
+        r.append('|___Password complexity = {}'.format(c_green('Enabled')))
     # Lockout settings
     if attributes['lockoutThreshold'][0] == 0:
-        r.append('    Lockout threshold = {}'.format(c_white_on_red('Disabled')))
+        r.append('|___Lockout threshold = {}'.format(c_white_on_red('Disabled')))
     else:
-        r.append('    Lockout threshold = {}'.format(attributes['lockoutThreshold'][0]))
-        r.append('      Lockout duration = {}'.format(return_human_date(attributes['lockoutDuration'][0])))
-        r.append('      Lockout observation window = {}'.format(return_human_date(attributes['lockOutObservationWindow'][0])))
+        r.append('|___Lockout threshold = {}'.format(attributes['lockoutThreshold'][0]))
+        r.append('|___  Lockout duration = {}'.format(return_human_date(attributes['lockoutDuration'][0])))
+        r.append('|___  Lockout observation window = {}'.format(return_human_date(attributes['lockOutObservationWindow'][0])))
     return r
 
 
-def return_show_pass_pol(pass_pol):
-    r = ['Fined grained password policy found: {}'.format(c_cyan(pass_pol.cn.value))]
+def list_pass_pol(pass_pol):
+    r = ['+ Fined grained password policy found: {}'.format(c_cyan(pass_pol.cn.value))]
     attributes = pass_pol.entry_attributes_as_dict
-    r.append('    Password settings precedence = {}'.format(attributes['msDS-PasswordSettingsPrecedence'][0]))
+    r.append('|____Password settings precedence = {}'.format(attributes['msDS-PasswordSettingsPrecedence'][0]))
     pass_len = attributes['msDS-MinimumPasswordLength'][0]
     # Password length
     if pass_len < 8:
-        r.append('    Minimum password length = {}'.format(c_red(pass_len)))
+        r.append('|___Minimum password length = {}'.format(c_red(pass_len)))
     elif pass_len < 12:
-        r.append('    Minimum password length = {}'.format(c_orange(pass_len)))
+        r.append('|___Minimum password length = {}'.format(c_orange(pass_len)))
     else:
-        r.append('    Minimum password length = {}'.format(c_green(pass_len)))
+        r.append('|___Minimum password length = {}'.format(c_green(pass_len)))
     # Password complexity
     if attributes['msDS-PasswordComplexityEnabled'][0]:
-        r.append('    Password complexity enabled = {}'.format(c_green(attributes['msDS-PasswordComplexityEnabled'][0])))
+        r.append('|___Password complexity enabled = {}'.format(c_green(attributes['msDS-PasswordComplexityEnabled'][0])))
     else:
-        r.append('    Password complexity enabled = {}'.format(c_red(attributes['msDS-PasswordComplexityEnabled'][0])))
+        r.append('|___Password complexity enabled = {}'.format(c_red(attributes['msDS-PasswordComplexityEnabled'][0])))
     # Password reversible encryption?
     if attributes['msDS-PasswordReversibleEncryptionEnabled'][0]:
-        r.append('    Password reversible encryption enabled = {}'.format(c_white_on_red(attributes['msDS-PasswordReversibleEncryptionEnabled'][0])))
+        r.append('|___Password reversible encryption enabled = {}'.format(c_white_on_red(attributes['msDS-PasswordReversibleEncryptionEnabled'][0])))
     else:
-        r.append('    Password reversible encryption enabled = {}'.format(attributes['msDS-PasswordReversibleEncryptionEnabled'][0]))
+        r.append('|___Password reversible encryption enabled = {}'.format(attributes['msDS-PasswordReversibleEncryptionEnabled'][0]))
     # Lockout settings
     if attributes['msDS-LockoutThreshold'][0] == 0:
-        r.append('    Lockout threshold = {}'.format(c_white_on_red('Disabled')))
+        r.append('|___Lockout threshold = {}'.format(c_white_on_red('Disabled')))
     else:
-        r.append('    Lockout threshold = {}'.format(attributes['msDS-LockoutThreshold'][0]))
-        r.append('      Lockout duration = {}'.format(return_human_date(attributes['msDS-LockoutDuration'][0])))
-        r.append('      Lockout observation window = {}'.format(return_human_date(attributes['msDS-LockoutObservationWindow'][0])))
+        r.append('|___Lockout threshold = {}'.format(attributes['msDS-LockoutThreshold'][0]))
+        r.append('|___  Lockout duration = {}'.format(return_human_date(attributes['msDS-LockoutDuration'][0])))
+        r.append('|___  Lockout observation window = {}'.format(return_human_date(attributes['msDS-LockoutObservationWindow'][0])))
     return r
 
 
@@ -440,7 +455,7 @@ def get_pass_pols(args):
                 if args.output_file:
                     f = open(args.output_file, 'a')
                 for entry in entries:
-                    for out_line in return_show_default_pass_pol(entry):
+                    for out_line in list_default_pass_pol(entry):
                         logging.info(out_line)
                     if args.output_file:
                         f.write('{}\n'.format(entry.entry_to_json()))
@@ -459,7 +474,7 @@ def get_pass_pols(args):
                 if args.output_file:
                     f = open(args.output_file, 'a')
                 for entry in entries:
-                    for out_line in return_show_pass_pol(entry):
+                    for out_line in list_pass_pol(entry):
                         logging.info(out_line)
                     if args.output_file:
                         f.write('{}\n'.format(entry.entry_to_json()))
@@ -469,48 +484,56 @@ def get_pass_pols(args):
         logging.error('{}'.format(e))
 
 
-def return_show_user(user):
-    r = ['User found: {}'.format(c_cyan(user.displayName.value))]
-    r.append('samAccountName = {}'.format(user.samAccountName.value))
-    if 'adminCount' in user.entry_attributes_as_dict.keys():
-        if user.admincount.value == 1:
-            r.append('{}'.format(c_red('The adminCount is set to 1!')))
-        elif user.admincount.value == 0:
-            pass
-        else:
-            r.append(c_purple('Unknown value for adminCount: {}'.format(user.admincount.value)))
-    r.append('userAccountControl = {}'.format(list_uac_colored_flags(user.userAccountControl.value)))
-    r.append('sAMAccountType = {}'.format(list_samaccounttype(user.samaccounttype.value)))
+def list_groups(entry):
+    ''' Return a list containing the CN of each group the parameter is member of. '''
+    if 'memberOf' not in entry.entry_attributes_as_dict.keys():
+        return ['memberOf attribute not found']
     groups = []
     # dirty patch because "memberOf.value" return a string if there is only one group
     # and a list a string if there is more than one group
-    logging.debug('type of memberOf = {}'.format(type(user.memberOf.value)))
-    if isinstance(user.memberOf.value, str):
-        groups_raw = [user.memberOf.value]
+    logging.debug('type of memberOf = {}'.format(type(entry.memberOf.value)))
+    if isinstance(entry.memberOf.value, str):
+        groups_raw = [entry.memberOf.value]
     else:
-        groups_raw = user.memberOf.value
+        groups_raw = entry.memberOf.value
     for group in groups_raw:
         group_cn = re.search('CN=([^,]*),', group).group(1)
-        if re.search('domain admins', group_cn, re.IGNORECASE):
+        if re.search('(domain admins|admins du domaine)', group_cn, re.IGNORECASE):
             groups.append(c_red(group_cn))
         elif re.search('admin', group_cn, re.IGNORECASE):
             groups.append(c_orange(group_cn))
         else:
             groups.append(group_cn)
-    r.append('memberOf = {}'.format(', '.join(groups)))
+    return groups
+
+
+def list_user_details(user):
+    r = ['+ {}'.format(user.samAccountName.value)]
+    r.append('|___type: {}'.format(str_object_type(user)))
+    if 'displayName' in user.entry_attributes_as_dict.keys():
+        r.append('|___displayName = {}'.format(user.displayName.value))
+    if 'adminCount' in user.entry_attributes_as_dict.keys():
+        if user.admincount.value == 1:
+            r.append('|___{}'.format(c_red('The adminCount is set to 1')))
+        elif user.admincount.value == 0:
+            pass
+        else:
+            r.append('|___'.format(c_purple('Unknown value for adminCount: {}'.format(user.admincount.value))))
+    if 'userAccountControl' in user.entry_attributes_as_dict.keys():
+        r.append('|___userAccountControl = {}'.format(', '.join(list_uac_colored_flags(user.userAccountControl.value))))
+    r.append('|___sAMAccountType = {}'.format(str_samaccounttype(user.samaccounttype.value)))
+    if 'memberOf' in user.entry_attributes_as_dict.keys():
+        r.append('|___memberOf = {}'.format(', '.join(list_groups(user))))
     return r
 
 
-def get_show_user(args):
+def show_user(args):
     logging.info('Looking for users on LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     domain_username = '{}\\{}'.format(args.domain, args.username)
     logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
     try:
         with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
-            # search_filter = "(&(objectClass=user)(!(objectClass=computer)))"
-            # search_attributes = ['cn', 'servicePrincipalName', 'samaccountname', 'userAccountControl']
-            # size_limit = 10
             base_dn = server.info.other.get('defaultNamingContext')[0]
             logging.debug('Found base DN = {}'.format(base_dn))
             logging.debug('Search filter = {}'.format(args.search_filter))
@@ -522,7 +545,7 @@ def get_show_user(args):
         if not entries:
             logging.info('No result found.')
         for entry in entries:
-            for out_line in return_show_user(entry):
+            for out_line in list_user_details(entry):
                 logging.info(out_line)
             if args.output_file:
                 f.write('{}\n'.format(entry.entry_to_json()))
@@ -532,8 +555,60 @@ def get_show_user(args):
         logging.error('{}'.format(e))
     except ldap3.core.exceptions.LDAPInvalidFilterError as e:
         logging.error('{} (perhaps missing parenthesis?)'.format(e))
-    # except Exception as e:
-    #     logging.error('{}'.format(e))
+
+
+def list_da_brief(da):
+    ''' Return a list of brief info of Domain Admin. '''
+    if str_object_type(da) != 'user':
+        return ['Invalid type for "{}", not a user?'.format(da.sAMAccountName.value)]
+    uac_flags = list_uac_colored_flags(da.userAccountControl.value)
+    uac_flags.remove('NORMAL_ACCOUNT')
+    if uac_flags:
+        r = ['+ {} ({})'.format(da.sAMAccountName.value, ', '.join(uac_flags))]
+    else:
+        r = ['+ {}'.format(da.sAMAccountName.value)]
+    return r
+
+
+def show_domain_admins(args):
+    logging.info('Looking for domain admins on LDAP server {}'.format(args.ldap_server))
+    server = ldap3.Server(args.ldap_server, get_info='ALL')
+    domain_username = '{}\\{}'.format(args.domain, args.username)
+    logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
+    with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
+        # first of all, we need to extract the exact dn to be able to search for nested groups
+        search_filter = '(|(CN=Domain Admins)(CN=Admins du domaine))'
+        search_attributes = 'distinguishedName'
+        size_limit = 2
+        base_dn = server.info.other.get('defaultNamingContext')[0]
+        logging.debug('Found base DN = {}'.format(base_dn))
+        logging.debug('Search filter = {}'.format(search_filter))
+        logging.debug('Looking for attributes = {}'.format(search_attributes))
+        conn.search(base_dn, search_filter, attributes=search_attributes, size_limit=size_limit)
+        entries = conn.entries
+        # check if len(domain_admin_group) == 1
+        logging.debug('Number of dn found = {}'.format(len(entries)))
+        if len(entries) == 1:
+            da_dn = entries[0].distinguishedName.value
+            logging.info('Domain admin group\'s distinguishedName = {} '.format(c_cyan(da_dn)))
+            # first of all, we need to extract the exact dn to be able to search for nested groups
+            search_filter = '(&(memberOf:1.2.840.113556.1.4.1941:={})(!(objectClass=group)))'.format(da_dn)
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(search_filter))
+            logging.debug('Looking for attributes = {}'.format(args.search_attributes))
+            conn.search(base_dn, search_filter, attributes=args.search_attributes, size_limit=args.size_limit)
+            entries = conn.entries
+            logging.info('{} domain admins found:'.format(len(entries)))
+            for entry in entries:
+                for out_line in list_da_brief(entry):
+                    logging.info(out_line)
+        else:
+            logging.error('The domain admin group was not found precisely. {} results were returned.'.format(len(entries)))
+            entries = None
+    if args.output_file and entries is not None:
+        with open(args.output_file, 'a') as f:
+            for entry in entries:
+                f.write('{}\n'.format(entry.entry_to_json()))
 
 
 def main():
@@ -584,15 +659,15 @@ def main():
     elif args.request_type == 'whoami':
         get_whoami(args)
     elif args.request_type == 'search':
-        get_search(args)
+        search(args)
     elif args.request_type == 'trusts':
         get_trusts(args)
     elif args.request_type == 'pass-pols':
         get_pass_pols(args)
     elif args.request_type == 'show-domain-admins':
-        logging.error('Error: implement this part. read https://confluence.atlassian.com/kb/how-to-write-ldap-search-filters-792496933.html for nested groups')
+        show_domain_admins(args)
     elif args.request_type == 'show-user':
-        get_show_user(args)
+        show_user(args)
     else:
         logging.error('Error: no request type supplied. (Please use "-t")')
 
