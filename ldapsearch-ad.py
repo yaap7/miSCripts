@@ -8,26 +8,32 @@ import sys
 
 
 def c_cyan(message):
+    """Mostly for general usefull information."""
     return '\x1b[0;36;40m{}\x1b[0m'.format(message)
 
 
 def c_green(message):
+    """Color text for good configuration."""
     return '\x1b[0;32;40m{}\x1b[0m'.format(message)
 
 
 def c_orange(message):
+    """Color text for weak configuration."""
     return '\x1b[0;33;40m{}\x1b[0m'.format(message)
 
 
 def c_purple(message):
+    """Color text for abnormal behavior of the tool itself."""
     return '\x1b[0;35;40m{}\x1b[0m'.format(message)
 
 
 def c_red(message):
+    """Color text for bad configuration."""
     return '\x1b[0;31;40m{}\x1b[0m'.format(message)
 
     
 def c_white_on_red(message):
+    """Color text for very bad configuration."""
     return '\x1b[1;37;41m{}\x1b[0m'.format(message)
 
 
@@ -49,9 +55,9 @@ def str_human_date(date):
 
 
 def list_functionality_level(num):
-    ''' Return the functionality level as described at:
+    """Return the functionality level as described at:
     https://msdn.microsoft.com/en-us/library/cc223274.aspx
-    Note: it is the same for forest, domain, and domain controller. '''
+    Note: it is the same for forest, domain, and domain controller."""
     n = int(num)
     func_levels = [
         c_white_on_red('Windows 2000'),
@@ -70,8 +76,8 @@ def list_functionality_level(num):
 
 
 def list_uac_flags(uac):
-    ''' Return a list of property flags as described at:
-    https://support.microsoft.com/en-gb/help/305144/how-to-use-the-useraccountcontrol-flags-to-manipulate-user-account-pro '''
+    """Return a list of property flags as described at:
+    https://support.microsoft.com/en-gb/help/305144/how-to-use-the-useraccountcontrol-flags-to-manipulate-user-account-pro"""
     flags = []
     if uac & 0x1 > 0:
         flags.append('SCRIPT')
@@ -121,8 +127,8 @@ def list_uac_flags(uac):
 
 
 def list_uac_colored_flags(uac):
-    ''' Return a list of property flags as described at:
-    https://support.microsoft.com/en-gb/help/305144/how-to-use-the-useraccountcontrol-flags-to-manipulate-user-account-pro '''
+    """Return a list of property flags as described at:
+    https://support.microsoft.com/en-gb/help/305144/how-to-use-the-useraccountcontrol-flags-to-manipulate-user-account-pro"""
     flags = []
     if uac & 0x1 > 0:
         flags.append('SCRIPT')
@@ -172,8 +178,8 @@ def list_uac_colored_flags(uac):
 
 
 def str_samaccounttype(sat):
-    ''' Return the SAM-Account-Type as described at:
-    https://docs.microsoft.com/en-us/windows/desktop/adschema/a-samaccounttype '''
+    """Return the SAM-Account-Type as described at:
+    https://docs.microsoft.com/en-us/windows/desktop/adschema/a-samaccounttype"""
     if sat == 0x0:
         return 'SAM_DOMAIN_OBJECT'
     elif sat == 0x10000000:
@@ -219,9 +225,8 @@ def str_object_type(entry):
         return 'Unable to find correct type (sAMAccountType not present).'
 
 
-
 def list_trustType(trustType):
-    '''Return the trust type as defined here: https://msdn.microsoft.com/en-us/library/cc223771.aspx'''
+    """Return the trust type as defined here: https://msdn.microsoft.com/en-us/library/cc223771.aspx"""
     if trustType == 1:
         return 'The trusted domain is a Windows domain not running Active Directory.'
     elif trustType == 2:
@@ -235,7 +240,7 @@ def list_trustType(trustType):
 
 
 def list_trustDirection(trustDirection):
-    '''Return the trust direction as defined here: https://msdn.microsoft.com/en-us/library/cc223768.aspx'''
+    """Return the trust direction as defined here: https://msdn.microsoft.com/en-us/library/cc223768.aspx"""
     if trustDirection == 0:
         return 'Disabled'
     elif trustDirection == 1:
@@ -249,7 +254,7 @@ def list_trustDirection(trustDirection):
 
 
 def list_trustAttributes(ta):
-    '''Return the trust attribute flags as defined here: https://msdn.microsoft.com/en-us/library/cc223779.aspx'''
+    """Return the trust attribute flags as defined here: https://msdn.microsoft.com/en-us/library/cc223779.aspx"""
     flags = []
     if ta & 0x1 > 0:
         flags.append('TRUST_ATTRIBUTE_NON_TRANSITIVE')
@@ -277,7 +282,7 @@ def list_trustAttributes(ta):
 def get_server_info(args):
     logging.info('Getting info from LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
-    conn = ldap3.Connection(server, auto_bind=True)
+    ldap3.Connection(server, auto_bind=True)
     # logging.info('get_info=ALL:\n{}'.format(str(server.info)))
     logging.info('Forest functionality level = {}'.format(list_functionality_level(server.info.other['forestFunctionality'][0])))
     logging.info('Domain functionality level = {}'.format(list_functionality_level(server.info.other['domainFunctionality'][0])))
@@ -334,20 +339,22 @@ def search(args):
 
 
 
-def return_trust_infos(trust):
-    ''' TODO : change this method to return a list '''
-    r = '+ {} ({})\n'.format(trust.name.value, trust.flatName.value)
-    r += '|___trustAttributes = {}\n'.format(list_trustAttributes(trust.trustAttributes.value))
-    r += '|___trustDirection = {}\n'.format(list_trustDirection(trust.trustDirection.value))
-    r += '|___trustType = {}\n'.format(list_trustType(trust.trustType.value))
-    r += '|___trustPartner = {}\n'.format(trust.trustPartner.value)
-    r += '|___securityIdentifier = {}\n'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value))
-    r += '|___whenCreated = {}\n'.format(trust.whenCreated.value)
-    r += '|___whenChanged = {}\n'.format(trust.whenChanged.value)
+def list_trust_info(trust):
+    """Return the most usefull information about trusts."""
+    r = []
+    r.append('+ {} ({})\n'.format(trust.name.value, trust.flatName.value))
+    r.append('|___trustAttributes = {}\n'.format(list_trustAttributes(trust.trustAttributes.value)))
+    r.append('|___trustDirection = {}\n'.format(list_trustDirection(trust.trustDirection.value)))
+    r.append('|___trustType = {}\n'.format(list_trustType(trust.trustType.value)))
+    r.append('|___trustPartner = {}\n'.format(trust.trustPartner.value))
+    r.append('|___securityIdentifier = {}\n'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value)))
+    r.append('|___whenCreated = {}\n'.format(trust.whenCreated.value))
+    r.append('|___whenChanged = {}\n'.format(trust.whenChanged.value))
     return r
 
 
 def get_trusts(args):
+    """Main function to get info about trusts."""
     logging.info('Looking for trusts on LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     domain_username = '{}\\{}'.format(args.domain, args.username)
@@ -359,7 +366,7 @@ def get_trusts(args):
             base_dn = server.info.other.get('defaultNamingContext')[0]
             logging.debug('Found base DN = {}'.format(base_dn))
             logging.debug('Search filter = {}'.format(search_filter))
-            logging.debug('Looking for attributes = {}'.format(search_attributes))
+            logging.debug('Looking for attributes = {}'.format(args.search_attributes))
             conn.search(base_dn, search_filter, attributes=args.search_attributes, size_limit=size_limit)
             entries = conn.entries
         if args.output_file:
@@ -367,7 +374,9 @@ def get_trusts(args):
         if not entries:
             logging.info('No trusts found.')
         for entry in entries:
-            logging.info('Trust = {}'.format(return_trust_infos(entry)))
+            logging.info('Trust =')
+            for out_line in list_trust_info(entry):
+                logging.info('{}'.format(out_line))
             if args.output_file:
                 f.write('{}\n'.format(entry.entry_to_json()))
         if args.output_file:
@@ -377,8 +386,7 @@ def get_trusts(args):
 
 
 def list_default_pass_pol(pass_pol):
-    ''' Return a list of strings containing infos about
-        the default password policy. '''
+    """Return a list of strings containing info about the default password policy."""
     r = ['+ Default password policy:']
     attributes = pass_pol.entry_attributes_as_dict
     pass_len = attributes['minPwdLength'][0]
@@ -398,12 +406,13 @@ def list_default_pass_pol(pass_pol):
         r.append('|___Lockout threshold = {}'.format(c_white_on_red('Disabled')))
     else:
         r.append('|___Lockout threshold = {}'.format(attributes['lockoutThreshold'][0]))
-        r.append('|___  Lockout duration = {}'.format(return_human_date(attributes['lockoutDuration'][0])))
-        r.append('|___  Lockout observation window = {}'.format(return_human_date(attributes['lockOutObservationWindow'][0])))
+        r.append('|___  Lockout duration = {}'.format(str_human_date(attributes['lockoutDuration'][0])))
+        r.append('|___  Lockout observation window = {}'.format(str_human_date(attributes['lockOutObservationWindow'][0])))
     return r
 
 
 def list_pass_pol(pass_pol):
+    """Return a list of strings containing info about a Fine-Grained Password Policy."""
     r = ['+ Fined grained password policy found: {}'.format(c_cyan(pass_pol.cn.value))]
     attributes = pass_pol.entry_attributes_as_dict
     r.append('|____Password settings precedence = {}'.format(attributes['msDS-PasswordSettingsPrecedence'][0]))
@@ -430,12 +439,13 @@ def list_pass_pol(pass_pol):
         r.append('|___Lockout threshold = {}'.format(c_white_on_red('Disabled')))
     else:
         r.append('|___Lockout threshold = {}'.format(attributes['msDS-LockoutThreshold'][0]))
-        r.append('|___  Lockout duration = {}'.format(return_human_date(attributes['msDS-LockoutDuration'][0])))
-        r.append('|___  Lockout observation window = {}'.format(return_human_date(attributes['msDS-LockoutObservationWindow'][0])))
+        r.append('|___  Lockout duration = {}'.format(str_human_date(attributes['msDS-LockoutDuration'][0])))
+        r.append('|___  Lockout observation window = {}'.format(str_human_date(attributes['msDS-LockoutObservationWindow'][0])))
     return r
 
 
 def get_pass_pols(args):
+    """Main function to get info about password policies."""
     logging.info('Looking for all password policies on LDAP server {}'.format(args.ldap_server))
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     domain_username = '{}\\{}'.format(args.domain, args.username)
@@ -447,6 +457,7 @@ def get_pass_pols(args):
             logging.debug('Found base DN = {}'.format(base_dn))
             logging.debug('Search filter = {}'.format(search_filter))
             logging.debug('Looking for attributes = {}'.format(args.search_attributes))
+            logging.debug('type of search attributes = {}'.format(type(args.search_attributes)))
             conn.search(base_dn, search_filter, attributes=args.search_attributes, size_limit=args.size_limit)
             entries = conn.entries
             if not entries:
@@ -485,7 +496,7 @@ def get_pass_pols(args):
 
 
 def list_groups(entry):
-    ''' Return a list containing the CN of each group the parameter is member of. '''
+    """Return a list containing the CN of each group the parameter is member of."""
     if 'memberOf' not in entry.entry_attributes_as_dict.keys():
         return ['memberOf attribute not found']
     groups = []
@@ -518,7 +529,7 @@ def list_user_details(user):
         elif user.admincount.value == 0:
             pass
         else:
-            r.append('|___'.format(c_purple('Unknown value for adminCount: {}'.format(user.admincount.value))))
+            r.append('|___{}'.format(c_purple('Unknown value for adminCount: {}'.format(user.admincount.value))))
     if 'userAccountControl' in user.entry_attributes_as_dict.keys():
         r.append('|___userAccountControl = {}'.format(', '.join(list_uac_colored_flags(user.userAccountControl.value))))
     r.append('|___sAMAccountType = {}'.format(str_samaccounttype(user.samaccounttype.value)))
@@ -558,7 +569,7 @@ def show_user(args):
 
 
 def list_da_brief(da):
-    ''' Return a list of brief info of Domain Admin. '''
+    """Return a list of brief info of Domain Admin."""
     if str_object_type(da) != 'user':
         return ['Invalid type for "{}", not a user?'.format(da.sAMAccountName.value)]
     uac_flags = list_uac_colored_flags(da.userAccountControl.value)
