@@ -67,6 +67,29 @@ Python3 script to remove all comments of a powershell script.
 Functionality to be added: split very huge base64 chunks in part of about 450 bytes to allow copy paste in a powershell terminal (do you have a better method? real question).
 
 
+## search-censys.py
+
+Search for open ports for a specific IP on Censys (need an API key).
+
+**usage**: `./search-censys.py ip:192.30.253.112`
+```
+Result for 192.30.253.112
++ Open port: 443/https
++ Open port: 22/ssh
++ Open port: 80/http
+```
+
+or CSV output with `-c`: `./search-censys.py -c ip:192.30.253.112 ip:192.30.253.113`
+```
+192.30.253.113,443/https
+192.30.253.113,22/ssh
+192.30.253.113,80/http
+192.30.253.112,443/https
+192.30.253.112,22/ssh
+192.30.253.112,80/http
+```
+
+
 ## search-nessus-445.py
 
 To be merged with `extract-ports-from-nessus.py`.
