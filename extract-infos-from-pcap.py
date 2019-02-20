@@ -4,7 +4,7 @@ import logging
 import re
 import sys
 # logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import *
+from scapy.all import Dot3, Ether, Dot1Q, STP, IP, TCP, UDP, SNMP, HSRP, HSRPmd5, rdpcap
 
 
 logging.basicConfig(
