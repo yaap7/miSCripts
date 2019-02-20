@@ -5,6 +5,12 @@
 Python3 script to quickly create a POC of user enumeration through a web application.
 
 
+## extract-data-from-pcap.py
+
+Python3 script to extract all data in TCP segment of an entire pcap.
+No filter implemented for the moment (please filter with tshark or wireshark).
+
+
 ## extract-infos-from-pcap.py
 
 Python3 script to all juicy information from a pcap file. Used for passive network recon.
