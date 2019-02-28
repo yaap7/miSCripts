@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ "$#" -le 0 ]] ; then
+    cat - | while read line ; do
+        echo -n "$line" | iconv -t utf16le | openssl md4 | grep -o '[0-9a-f]\{32\}'
+    done
+fi
+
+while [[ "$#" -gt 0 ]] ; do
+    echo -n "$1" | iconv -t utf16le | openssl md4 | grep -o '[0-9a-f]\{32\}'
+    shift
+done

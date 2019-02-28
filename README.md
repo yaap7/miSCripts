@@ -16,6 +16,7 @@ No filter implemented for the moment (please filter with tshark or wireshark).
 Python3 script to all juicy information from a pcap file. Used for passive network recon.
 
 TODO:
+
 * use `argparse` for a nice usage message;
 * retrieve the `originating vlan` in STP;
 * retrive all information from LLDP trames.
@@ -31,6 +32,7 @@ Python3 script to retrieve a list of IP addresses which listened on a specific p
 Python3 script to get various information from a domain controller through his LDAP service.
 
 TODO:
+
 * better explain the usage here.
 * add pretty output for other functions (get-user, get-spn, etc) while keeping a json output.
 
@@ -44,6 +46,32 @@ Quick adaptation of the [lyncsmash](https://github.com/nyxgeek/lyncsmash) origin
 
 Quick python2 script to decode the NTLM SSP authentication because I was not happy with the existing tools.
 Have to be manually edited to change the challenge to decode.
+
+
+## ntlmsum
+
+Show the NTLM hash of each line (from a file, or inline).
+
+**usages**:
+
+```
+$ ./ntlmsum 'P@$$w0rd'
+f56a8399599f1be040128b1dd9623c29
+```
+```
+$ cat pass.txt | ./ntlmsum 
+f56a8399599f1be040128b1dd9623c29
+```
+```
+$ ./ntlmsum 'P@$$w0rd' 'Ub3r_$3cRe7'
+f56a8399599f1be040128b1dd9623c29
+733aac45c620a5c11c9e03a40262fc7c
+```
+```
+$ cat multipass.txt | ./ntlmsum
+f56a8399599f1be040128b1dd9623c29
+733aac45c620a5c11c9e03a40262fc7c
+```
 
 
 ## parse-o365-log.py
