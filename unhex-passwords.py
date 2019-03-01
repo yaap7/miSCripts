@@ -12,9 +12,14 @@ def unhex_line(line):
             # patch to avoid issue with '\9' in decoded
             decoded = decoded.replace('\\', '\\\\')
             line = regex.sub(decoded, line.strip())
+        except ValueError:
+            # The value inside HEX brackets is not hex only
+            # so we assume it is an error and
+            # we simply remove it to avoid decode errors
+            line = regex.sub('', line)
         except Exception as e:
-            sys.stderr.write('Error with line = {}'.format(line))
-            sys.stderr.write('decoded = {}'.format(decoded))
+            sys.stderr.write('Error with line = {}\n'.format(line))
+            sys.stderr.write('decoded = {}\n'.format(decoded))
             raise e
     return(line.strip())
 
