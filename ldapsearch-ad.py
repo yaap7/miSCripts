@@ -346,14 +346,14 @@ def search(args):
 def list_trust_info(trust):
     """Return the most usefull information about trusts."""
     r = []
-    r.append('+ {} ({})\n'.format(trust.name.value, trust.flatName.value))
-    r.append('|___trustAttributes = {}\n'.format(list_trustAttributes(trust.trustAttributes.value)))
-    r.append('|___trustDirection = {}\n'.format(list_trustDirection(trust.trustDirection.value)))
-    r.append('|___trustType = {}\n'.format(list_trustType(trust.trustType.value)))
-    r.append('|___trustPartner = {}\n'.format(trust.trustPartner.value))
-    r.append('|___securityIdentifier = {}\n'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value)))
-    r.append('|___whenCreated = {}\n'.format(trust.whenCreated.value))
-    r.append('|___whenChanged = {}\n'.format(trust.whenChanged.value))
+    r.append('+ {} ({})'.format(trust.name.value, trust.flatName.value))
+    r.append('|___trustAttributes = {}'.format(list_trustAttributes(trust.trustAttributes.value)))
+    r.append('|___trustDirection = {}'.format(list_trustDirection(trust.trustDirection.value)))
+    r.append('|___trustType = {}'.format(list_trustType(trust.trustType.value)))
+    r.append('|___trustPartner = {}'.format(trust.trustPartner.value))
+    r.append('|___securityIdentifier = {}'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value)))
+    r.append('|___whenCreated = {}'.format(trust.whenCreated.value))
+    r.append('|___whenChanged = {}'.format(trust.whenChanged.value))
     return r
 
 
