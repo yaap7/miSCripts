@@ -31,10 +31,29 @@ Python3 script to retrieve a list of IP addresses which listened on a specific p
 
 Python3 script to get various information from a domain controller through his LDAP service.
 
-TODO:
+### TODO
 
-* better explain the usage here.
-* add pretty output for other functions (get-user, get-spn, etc) while keeping a json output.
+* give usefull `search` examples ;
+* add pretty output for other functions (get-user, get-spn, etc) while keeping a json output ;
+
+
+### Usage
+
+Retrieve server information without credentials using `-t info`:
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -t info
+Getting info from LDAP server 192.168.56.20
+Forest functionality level = Windows 2012 R2
+Domain functionality level = Windows 2012 R2
+Domain controller functionality level = Windows 2012 R2
+rootDomainNamingContext = DC=evilcorp,DC=lab2
+defaultNamingContext = DC=evilcorp,DC=lab2
+ldapServiceName = evilcorp.lab2:mtldc1$@EVILCORP.LAB2
+naming_contexts = ['DC=evilcorp,DC=lab2', 'CN=Configuration,DC=evilcorp,DC=lab2', 'CN=Schema,CN=Configuration,DC=evilcorp,DC=lab2', 'DC=DomainDnsZones,DC=evilcorp,DC=lab2', 'DC=ForestDnsZones,DC=evilcorp,DC=lab2']
+```
+
+
 
 
 ## lyncsmash_gg.py
@@ -52,7 +71,7 @@ Have to be manually edited to change the challenge to decode.
 
 Show the NTLM hash of each line (from a file, or inline).
 
-**usages**:
+### Usages
 
 ```
 $ ./ntlmsum 'P@$$w0rd'
