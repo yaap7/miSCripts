@@ -37,6 +37,10 @@ def c_white_on_red(message):
     return '\x1b[1;37;41m{}\x1b[0m'.format(message)
 
 
+def str_title(title):
+    return '\x1b[1;37;40m###  {}  ###\x1b[0m'.format(title)
+
+
 def str_human_date(date):
     nb_sec = int((- date ) / 10000000)
     if nb_sec > 60 :
@@ -54,7 +58,7 @@ def str_human_date(date):
     return '{} secondes'.format(nb_sec)
 
 
-def list_functionality_level(num):
+def str_functionality_level(num):
     """Return the functionality level as described at:
     https://msdn.microsoft.com/en-us/library/cc223274.aspx
     Note: it is the same for forest, domain, and domain controller."""
@@ -284,9 +288,9 @@ def get_server_info(args):
     server = ldap3.Server(args.ldap_server, get_info='ALL')
     ldap3.Connection(server, auto_bind=True)
     # logging.info('get_info=ALL:\n{}'.format(str(server.info)))
-    logging.info('Forest functionality level = {}'.format(list_functionality_level(server.info.other['forestFunctionality'][0])))
-    logging.info('Domain functionality level = {}'.format(list_functionality_level(server.info.other['domainFunctionality'][0])))
-    logging.info('Domain controller functionality level = {}'.format(list_functionality_level(server.info.other['domainControllerFunctionality'][0])))
+    logging.info('Forest functionality level = {}'.format(str_functionality_level(server.info.other['forestFunctionality'][0])))
+    logging.info('Domain functionality level = {}'.format(str_functionality_level(server.info.other['domainFunctionality'][0])))
+    logging.info('Domain controller functionality level = {}'.format(str_functionality_level(server.info.other['domainControllerFunctionality'][0])))
     logging.info('rootDomainNamingContext = {}'.format(server.info.other['rootDomainNamingContext'][0]))
     logging.info('defaultNamingContext = {}'.format(server.info.other['defaultNamingContext'][0]))
     logging.info('ldapServiceName = {}'.format(server.info.other['ldapServiceName'][0]))
@@ -626,7 +630,7 @@ def main():
     # Parse arguments
     argParser = argparse.ArgumentParser(description="Active Directory LDAP Enumerator")
     argParser.add_argument('-l', '--server', required=True, dest='ldap_server', help='IP address of the LDAP server.')
-    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, pass-pols, show-domain-admins, show-user, TODO')
+    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, pass-pols, show-domain-admins, show-user, auto')
     argParser.add_argument('-d', '--domain', dest='domain', help='Authentication account\'s FQDN. Example: "contoso.local".')
     argParser.add_argument('-u', '--username', dest='username', help='Authentication account\'s username.')
     argParser.add_argument('-p', '--password', dest='password', help='Authentication account\'s password.')
@@ -646,6 +650,7 @@ def main():
     mandatory_arguments['pass-pols'] = ['domain', 'username', 'password']
     mandatory_arguments['show-domain-admins'] = ['domain', 'username', 'password']
     mandatory_arguments['show-user'] = ['domain', 'username', 'password', 'search_filter']
+    mandatory_arguments['auto'] = ['domain', 'username', 'password']
     if args.request_type not in mandatory_arguments.keys():
         argParser.error('request type must be one of: {}.'.format(', '.join(mandatory_arguments.keys())))
     for mandatory_argument in mandatory_arguments[args.request_type]:
@@ -679,6 +684,16 @@ def main():
         show_domain_admins(args)
     elif args.request_type == 'show-user':
         show_user(args)
+    elif args.request_type == 'auto':
+        logging.info(str_title('Server Info'))
+        get_server_info(args)
+        logging.info(str_title('List of Domain Admins'))
+        show_domain_admins(args)
+        logging.info(str_title('List of Trusts'))
+        get_trusts(args)
+        logging.info(str_title('Details of Password Policies'))
+        get_pass_pols(args)
+
     else:
         logging.error('Error: no request type supplied. (Please use "-t")')
 
