@@ -39,7 +39,45 @@ Python3 script to get various information from a domain controller through his L
 
 ### Usage
 
-Retrieve server information without credentials using `-t info`:
+Help:
+
+```
+$ ./ldapsearch-ad.py -h
+usage: ldapsearch-ad.py [-h] -l LDAP_SERVER -t REQUEST_TYPE [-d DOMAIN]
+                        [-u USERNAME] [-p PASSWORD] [-s SEARCH_FILTER]
+                        [-z SIZE_LIMIT] [-o OUTPUT_FILE] [-v]
+                        [search_attributes [search_attributes ...]]
+
+Active Directory LDAP Enumerator
+
+positional arguments:
+  search_attributes     LDAP attributes to look for.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l LDAP_SERVER, --server LDAP_SERVER
+                        IP address of the LDAP server.
+  -t REQUEST_TYPE, --type REQUEST_TYPE
+                        Request type: info, whoami, search, trusts, pass-pols,
+                        show-domain-admins, show-user, auto
+  -d DOMAIN, --domain DOMAIN
+                        Authentication account's FQDN. Example:
+                        "contoso.local".
+  -u USERNAME, --username USERNAME
+                        Authentication account's username.
+  -p PASSWORD, --password PASSWORD
+                        Authentication account's password.
+  -s SEARCH_FILTER, --search-filter SEARCH_FILTER
+                        Search filter (use LDAP format).
+  -z SIZE_LIMIT, --size_limit SIZE_LIMIT
+                        Size limit (default is server's limit).
+  -o OUTPUT_FILE, --output OUTPUT_FILE
+                        Write results in specified file too.
+  -v, --verbose         Turn on debug mode
+```
+
+
+* Retrieve server information without credentials using `-t info`:
 
 ```
 $ ./ldapsearch-ad.py -l 192.168.56.20 -t info
@@ -51,6 +89,14 @@ rootDomainNamingContext = DC=evilcorp,DC=lab2
 defaultNamingContext = DC=evilcorp,DC=lab2
 ldapServiceName = evilcorp.lab2:mtldc1$@EVILCORP.LAB2
 naming_contexts = ['DC=evilcorp,DC=lab2', 'CN=Configuration,DC=evilcorp,DC=lab2', 'CN=Schema,CN=Configuration,DC=evilcorp,DC=lab2', 'DC=DomainDnsZones,DC=evilcorp,DC=lab2', 'DC=ForestDnsZones,DC=evilcorp,DC=lab2']
+```
+
+Check authentication using `-t whoami`:
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u bbilly -p 'P@$$w0rd' -t whoami
+Executing whoami on LDAP server 192.168.56.20
+You are: "u:EVILCORP\bbilly"
 ```
 
 
