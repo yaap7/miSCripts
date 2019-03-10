@@ -77,7 +77,7 @@ optional arguments:
 ```
 
 
-* Retrieve server information without credentials using `-t info`:
+Retrieve server **information** without credentials using `-t info`:
 
 ```
 $ ./ldapsearch-ad.py -l 192.168.56.20 -t info
@@ -99,7 +99,142 @@ Executing whoami on LDAP server 192.168.56.20
 You are: "u:EVILCORP\bbilly"
 ```
 
+List **trusts** attributes using `-t trusts` (user account needed):
 
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t trusts
+Looking for trusts on LDAP server 192.168.56.20
+Trust =
++ fra.evilcorp.lab2 (FRA)
+|___trustAttributes = ['TRUST_ATTRIBUTE_WITHIN_FOREST']
+|___trustDirection = Bidirectional
+|___trustType = The trusted domain is a Windows domain running Active Directory.
+|___trustPartner = fra.evilcorp.lab2
+|___securityIdentifier = S-1-5-21-2894840767-735700-3593130334
+|___whenCreated = 2019-03-09 04:57:15+00:00
+|___whenChanged = 2019-03-09 04:57:15+00:00
+```
+
+List **password policies** using `-t pass-pols` (user account needed for default password policy / admin account needed for fine grained password policies):
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t pass-pols
+Looking for all password policies on LDAP server 192.168.56.20
++ Default password policy:
+|___Minimum password length = 7
+|___Password complexity = Enabled
+|___Lockout threshold = Disabled
+No fine grained password policy found (high privileges are often required).
+```
+
+Show the **domain admins** and their most interesting flags using `-t show-domain-admins` (user account needed):
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t show-domain-admins
+Looking for domain admins on LDAP server 192.168.56.20
+Domain admin group's distinguishedName = CN=Domain Admins,CN=Users,DC=evilcorp,DC=lab2 
+3 domain admins found:
++ Administrator
++ bbilly (ENCRYPTED_TEXT_PWD_ALLOWED)
++ dhcp_service
+```
+
+Show the most interesting attributes of a user using `-t show-user` (user account needed):
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t show-user -s '(samaccountname=bbilly)'
+Looking for users on LDAP server 192.168.56.20
++ bbilly
+|___type: user
+|___The adminCount is set to 1
+|___userAccountControl = ENCRYPTED_TEXT_PWD_ALLOWED, NORMAL_ACCOUNT
+|___sAMAccountType = SAM_USER_OBJECT
+|___memberOf = Bad admins
+```
+
+or even computers or groups. Everything depend of the search parameter `-s`.
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t show-user -s '(samaccountname=mtldc1$)'
+Looking for users on LDAP server 192.168.56.20
++ MTLDC1$
+|___type: computer
+|___userAccountControl = SERVER_TRUST_ACCOUNT, TRUSTED_FOR_DELEGATION
+|___sAMAccountType = SAM_MACHINE_ACCOUNT
+
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t show-user -s '(cn=bad admins)'
+Looking for users on LDAP server 192.168.56.20
++ bad_admins
+|___type: group
+|___displayName = Bad Admins
+|___The adminCount is set to 1
+|___sAMAccountType = SAM_GROUP_OBJECT
+|___memberOf = Domain Admins
+```
+
+Retrieve all interesting information with a simple user account using `-t auto`:
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t auto
+###  Server Info  ###
+Getting info from LDAP server 192.168.56.20
+Forest functionality level = Windows 2012 R2
+Domain functionality level = Windows 2012 R2
+Domain controller functionality level = Windows 2012 R2
+rootDomainNamingContext = DC=evilcorp,DC=lab2
+defaultNamingContext = DC=evilcorp,DC=lab2
+ldapServiceName = evilcorp.lab2:mtldc1$@EVILCORP.LAB2
+naming_contexts = ['DC=evilcorp,DC=lab2', 'CN=Configuration,DC=evilcorp,DC=lab2', 'CN=Schema,CN=Configuration,DC=evilcorp,DC=lab2', 'DC=DomainDnsZones,DC=evilcorp,DC=lab2', 'DC=ForestDnsZones,DC=evilcorp,DC=lab2']
+###  List of Domain Admins  ###
+Looking for domain admins on LDAP server 192.168.56.20
+Domain admin group's distinguishedName = CN=Domain Admins,CN=Users,DC=evilcorp,DC=lab2 
+3 domain admins found:
++ Administrator
++ bbilly (ENCRYPTED_TEXT_PWD_ALLOWED)
++ dhcp_service
+###  List of Trusts  ###
+Looking for trusts on LDAP server 192.168.56.20
+Trust =
++ fra.evilcorp.lab2 (FRA)
+|___trustAttributes = ['TRUST_ATTRIBUTE_WITHIN_FOREST']
+|___trustDirection = Bidirectional
+|___trustType = The trusted domain is a Windows domain running Active Directory.
+|___trustPartner = fra.evilcorp.lab2
+|___securityIdentifier = S-1-5-21-2894840767-735700-3593130334
+|___whenCreated = 2019-03-09 04:57:15+00:00
+|___whenChanged = 2019-03-09 04:57:15+00:00
+###  Details of Password Policies  ###
+Looking for all password policies on LDAP server 192.168.56.20
++ Default password policy:
+|___Minimum password length = 7
+|___Password complexity = Enabled
+|___Lockout threshold = Disabled
+No fine grained password policy found (high privileges are often required).
+```
+
+
+### Advanced usage using search
+
+Search for any information using the powerfull ldap filter syntax with `-t search`:
+
+```
+$ ./ldapsearch-ad.py -l 192.168.56.20 -d evilcorp -u jjohnny -p 'P@$$word' -t search -s '(&(objectClass=user)(servicePrincipalName=*))' cn serviceprincipalname
+Searching on LDAP server 192.168.56.20
+Entry = 
+DN: CN=MTLDC1,OU=Domain Controllers,DC=evilcorp,DC=lab2 - STATUS: Read - READ TIME: 2019-03-09T19:40:12.086215
+    cn: MTLDC1
+    servicePrincipalName: Dfsr-12F9A27C-BF97-4787-9364-D31B6C55EB04/MTLDC1.evilcorp.lab2
+                          ldap/MTLDC1.evilcorp.lab2/ForestDnsZones.evilcorp.lab2
+                          ldap/MTLDC1.evilcorp.lab2/DomainDnsZones.evilcorp.lab2
+                          DNS/MTLDC1.evilcorp.lab2
+                          GC/MTLDC1.evilcorp.lab2/evilcorp.lab2
+[…]
+```
+
+
+
+
+Thanks to [Bengui](https://youtu.be/xKG9v0UfuH0?t=228) for the username convention.
 
 
 ## lyncsmash_gg.py
