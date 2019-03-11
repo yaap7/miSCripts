@@ -351,7 +351,8 @@ def list_trust_info(trust):
     r.append('|___trustDirection = {}'.format(list_trustDirection(trust.trustDirection.value)))
     r.append('|___trustType = {}'.format(list_trustType(trust.trustType.value)))
     r.append('|___trustPartner = {}'.format(trust.trustPartner.value))
-    r.append('|___securityIdentifier = {}'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value)))
+    if 'securityIdentifier' in trust:
+        r.append('|___securityIdentifier = {}'.format(ldap3.protocol.formatters.formatters.format_sid(trust.securityIdentifier.value)))
     r.append('|___whenCreated = {}'.format(trust.whenCreated.value))
     r.append('|___whenChanged = {}'.format(trust.whenChanged.value))
     return r
