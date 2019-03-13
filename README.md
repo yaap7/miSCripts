@@ -35,7 +35,11 @@ Python3 script to get various information from a domain controller through his L
 
 * give usefull `search` examples ;
 * add pretty output for other functions (get-user, get-spn, etc) while keeping a json output ;
+* continuously improve this documentation
 
+for v2:
+
+* change the core architecture to create an object and do not open multiple connection for `-t all`
 
 ### Usage
 
