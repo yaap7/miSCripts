@@ -627,17 +627,52 @@ def show_domain_admins(args):
                 f.write('{}\n'.format(entry.entry_to_json()))
 
 
+
+def show_kerberoast(args):
+    logging.info('Looking for kerberoastable users on LDAP server {}'.format(args.ldap_server))
+    server = ldap3.Server(args.ldap_server, get_info='ALL')
+    domain_username = '{}\\{}'.format(args.domain, args.username)
+    logging.debug('Using NTLM authentication with username = {}'.format(domain_username))
+    try:
+        with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
+            base_dn = server.info.other.get('defaultNamingContext')[0]
+            search_filter = '(&(objectClass=user)(servicePrincipalName=*)(!(objectClass=computer))(!(cn=krbtgt))(!(userAccountControl:1.2.840.113556.1.4.803:=2)))'
+            search_attributes = ['cn', 'samaccountname', 'serviceprincipalname']
+            size_limit = 50
+            logging.debug('Found base DN = {}'.format(base_dn))
+            logging.debug('Search filter = {}'.format(search_filter))
+            logging.debug('Looking for attributes = {}'.format(search_attributes))
+            conn.search(base_dn, search_filter, attributes=search_attributes, size_limit=size_limit)
+            entries = conn.entries
+        if args.output_file:
+            f = open(args.output_file, 'a')
+        if not entries:
+            logging.info('No result found.')
+        for entry in entries:
+            logging.info('Entry = \n{}'.format(entry))
+            if args.output_file:
+                f.write('{}\n'.format(entry.entry_to_json()))
+        if args.output_file:
+            f.close
+    except ldap3.core.exceptions.LDAPBindError as e:
+        logging.error('{}'.format(e))
+    except ldap3.core.exceptions.LDAPInvalidFilterError as e:
+        logging.error('{} (perhaps missing parenthesis?)'.format(e))
+
+
+
+
 def main():
     # Parse arguments
     argParser = argparse.ArgumentParser(description="Active Directory LDAP Enumerator")
     argParser.add_argument('-l', '--server', required=True, dest='ldap_server', help='IP address of the LDAP server.')
-    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, pass-pols, show-domain-admins, show-user, auto')
+    argParser.add_argument('-t', '--type', required=True, dest='request_type', help='Request type: info, whoami, search, trusts, pass-pols, show-domain-admins, show-user, kerberoast, all')
     argParser.add_argument('-d', '--domain', dest='domain', help='Authentication account\'s FQDN. Example: "contoso.local".')
     argParser.add_argument('-u', '--username', dest='username', help='Authentication account\'s username.')
     argParser.add_argument('-p', '--password', dest='password', help='Authentication account\'s password.')
     argParser.add_argument('-s', '--search-filter', dest='search_filter', help='Search filter (use LDAP format).')
     argParser.add_argument('search_attributes', default='*', nargs='*', help='LDAP attributes to look for.')
-    argParser.add_argument('-z', '--size_limit', dest='size_limit', default=10, help='Size limit (default is server\'s limit).')
+    argParser.add_argument('-z', '--size_limit', dest='size_limit', default=100, help='Size limit (default is server\'s limit).')
     argParser.add_argument('-o', '--output', dest='output_file', help='Write results in specified file too.')
     argParser.add_argument('-v', '--verbose', dest='verbosity', help='Turn on debug mode', action='store_true')
     args = argParser.parse_args()
@@ -651,7 +686,8 @@ def main():
     mandatory_arguments['pass-pols'] = ['domain', 'username', 'password']
     mandatory_arguments['show-domain-admins'] = ['domain', 'username', 'password']
     mandatory_arguments['show-user'] = ['domain', 'username', 'password', 'search_filter']
-    mandatory_arguments['auto'] = ['domain', 'username', 'password']
+    mandatory_arguments['kerberoast'] = ['domain', 'username', 'password']
+    mandatory_arguments['all'] = ['domain', 'username', 'password']
     if args.request_type not in mandatory_arguments.keys():
         argParser.error('request type must be one of: {}.'.format(', '.join(mandatory_arguments.keys())))
     for mandatory_argument in mandatory_arguments[args.request_type]:
@@ -685,7 +721,9 @@ def main():
         show_domain_admins(args)
     elif args.request_type == 'show-user':
         show_user(args)
-    elif args.request_type == 'auto':
+    elif args.request_type == 'kerberoast':
+        show_kerberoast(args)
+    elif args.request_type == 'all':
         logging.info(str_title('Server Info'))
         get_server_info(args)
         logging.info(str_title('List of Domain Admins'))
@@ -694,6 +732,8 @@ def main():
         get_trusts(args)
         logging.info(str_title('Details of Password Policies'))
         get_pass_pols(args)
+        logging.info(str_title('Possible Kerberoast Clients'))
+        show_kerberoast(args)
 
     else:
         logging.error('Error: no request type supplied. (Please use "-t")')
