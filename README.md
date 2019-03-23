@@ -1,5 +1,46 @@
 # Misc Scripts
 
+## convert-cme-discover-to-csv.sh
+
+As the name suggests, it converts the output of a simple discovery scan from [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec) to a CSV file.
+
+
+### Usage
+
+`crackmapexec smb 192.168.0.0/24 | tee discover_192.168.0.0-24.cme`
+`cat discover_192.168.0.0-24.cme | convert-cme-discover-to-csv.sh`
+
+```
+ip,domain,hostname,signing,smbv1,os
+192.168.0.10,CONTOSO,SRV-DC1,True,True,Windows Server 2012 R2 Datacenter 9600 x64
+192.168.0.13,CONTOSO,SRV-DNS,True,True,Windows Server 2016 Standard 14393 x64
+192.168.0.11,CONTOSO,SRV-DC2,True,True,Windows Server 2012 R2 Datacenter 9600 x64
+192.168.0.16,CONTOSO,SRV-WEB01,True,True,Windows Server 2012 R2 Datacenter 9600 x64
+192.168.0.14,CONTOSO,SRV-SQL02,True,True,Windows Server 2012 R2 Datacenter 9600 x64
+192.168.0.12,CONTOSO,SRV-EXCH1,True,True,Windows Server 2012 R2 Datacenter 9600 x64
+192.168.0.17,CONTOSO,SRV-PRINT1,True,True,Windows Server 2012 R2 Datacenter 9600 x64
+[...snip...]
+```
+
+Could be easily pretty-printed using csvlook (from [csvkit](https://csvkit.readthedocs.io/en/latest/)):
+
+`cat discover_192.168.0.0-24.cme | convert-cme-discover-to-csv.sh | csvlook`
+
+```
+| ip           | domain  | hostname   | signing | smbv1 | os                                         |
+| ------------ | ------- | ---------- | ------- | ----- | ------------------------------------------ |
+| 192.168.0.10 | CONTOSO | SRV-DC1    |    True |  True | Windows Server 2012 R2 Datacenter 9600 x64 |
+| 192.168.0.13 | CONTOSO | SRV-DNS    |    True |  True | Windows Server 2016 Standard 14393 x64     |
+| 192.168.0.11 | CONTOSO | SRV-DC2    |    True |  True | Windows Server 2012 R2 Datacenter 9600 x64 |
+| 192.168.0.16 | CONTOSO | SRV-WEB01  |    True |  True | Windows Server 2012 R2 Datacenter 9600 x64 |
+| 192.168.0.14 | CONTOSO | SRV-SQL02  |    True |  True | Windows Server 2012 R2 Datacenter 9600 x64 |
+| 192.168.0.12 | CONTOSO | SRV-EXCH1  |    True |  True | Windows Server 2012 R2 Datacenter 9600 x64 |
+| 192.168.0.17 | CONTOSO | SRV-PRINT1 |    True |  True | Windows Server 2012 R2 Datacenter 9600 x64 |
+[...snip...]
+```
+
+
+
 ## enum-web-users.py
 
 Python3 script to quickly create a POC of user enumeration through a web application.
