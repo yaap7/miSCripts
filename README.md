@@ -8,6 +8,7 @@ As the name suggests, it converts the output of a simple discovery scan from [Cr
 ### Usage
 
 `crackmapexec smb 192.168.0.0/24 | tee discover_192.168.0.0-24.cme`
+
 `cat discover_192.168.0.0-24.cme | convert-cme-discover-to-csv.sh`
 
 ```
