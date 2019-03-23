@@ -355,7 +355,10 @@ def search_large(args):
         with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
             base_dn = server.info.other.get('defaultNamingContext')[0]
             search_filter = '(|(cn=*SEARCH_FILTER*)(company=*SEARCH_FILTER*)(department=*SEARCH_FILTER*)(description=*SEARCH_FILTER*)(displayname=*SEARCH_FILTER*)(distinguishedName=*SEARCH_FILTER*)(givenname=*SEARCH_FILTER*)(l=*SEARCH_FILTER*)(mail=*SEARCH_FILTER*)(mailnickname=*SEARCH_FILTER*)(mobile=*SEARCH_FILTER*)(msExchArchiveName=*SEARCH_FILTER*)(name=*SEARCH_FILTER*)(samaccountname=*SEARCH_FILTER*)(sn=*SEARCH_FILTER*)(title=*SEARCH_FILTER*)(userprincipalname=*SEARCH_FILTER*)(wwwhomepage=*SEARCH_FILTER*))'.replace('SEARCH_FILTER', args.search_filter)
-            search_attributes = ['distinguishedName']
+            if args.search_attributes:
+                search_attributes = args.search_attributes
+            else:
+                search_attributes = ['distinguishedName', 'displayName']
             size_limit = args.size_limit
             logging.debug('Found base DN = {}'.format(base_dn))
             logging.debug('Search filter = {}'.format(search_filter))
