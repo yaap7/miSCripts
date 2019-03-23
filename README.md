@@ -31,16 +31,6 @@ Python3 script to retrieve a list of IP addresses which listened on a specific p
 
 Python3 script to get various information from a domain controller through his LDAP service.
 
-### TODO
-
-* give usefull `search` examples ;
-* add pretty output for other functions (get-user, get-spn, etc) while keeping a json output ;
-* continuously improve this documentation
-
-for v2:
-
-* change the core architecture to create an object and do not open multiple connection for `-t all`
-
 ### Usage
 
 Help:
@@ -236,7 +226,17 @@ DN: CN=MTLDC1,OU=Domain Controllers,DC=evilcorp,DC=lab2 - STATUS: Read - READ TI
 ```
 
 
+### TODO
 
+* give usefull `search` examples ;
+* add pretty output for other functions (get-user, get-spn, etc) while keeping a json output ;
+* continuously improve this documentation
+
+for v2:
+
+* change the core architecture to create an object and do not open multiple connection for `-t all`
+
+### Credits
 
 Thanks to [Bengui](https://youtu.be/xKG9v0UfuH0?t=228) for the username convention.
 
