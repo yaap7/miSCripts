@@ -1,0 +1,46 @@
+#!/bin/bash
+
+
+function show_usage() {
+    echo "Basic usage: $0 -i <iface> <vm_ip>"
+    echo "Example: $0 -i eth0 192.168.56.10"
+    echo "default interface: eth0"
+    exit 0
+}
+
+
+# argument parsing
+# see: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+POSITIONAL=()
+while [[ $# -gt 0 ]] ; do
+    key="$1"
+    case $key in
+        -h)
+        show_usage
+        ;;
+        -i)
+        iface="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown option
+        POSITIONAL+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+iface=eth0
+if [[ "x$iface" != "x" ]]; then
+    iface=eth0
+fi
+
+vm_ip="${POSITIONAL[0]}"
+[[ -z $vm_ip ]] && show_usage
+
+sudo bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
+sudo iptables -I FORWARD -s "$vm_ip" -j ACCEPT
+sudo iptables -I FORWARD -d "$vm_ip" -j ACCEPT
+sudo iptables -A POSTROUTING -t nat -o "$iface" -j MASQUERADE
+

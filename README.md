@@ -303,6 +303,31 @@ Thanks to [Bengui](https://youtu.be/xKG9v0UfuH0?t=228) for the username conventi
 Quick adaptation of the [lyncsmash](https://github.com/nyxgeek/lyncsmash) original tool. To be removed.
 
 
+
+
+## nat-vm
+
+Simple script to add the correct `iptables` rules to NAT a VM in `host-only adapter` mode (used with [VirtualBox](https://www.virtualbox.org/)).
+
+### Usage
+
+`nat-vm -h`
+
+```
+Basic usage: /home/gg/bin/nat-vm -i <iface> <vm_ip>
+Example: /home/gg/bin/nat-vm -i eth0 192.168.56.10
+default interface: eth0
+```
+
+`nat-vm 192.168.56.10`
+or
+`nat-vm -i wlan0 192.168.56.10`
+
+
+
+
+
+
 ## ntlmssp-decode.py
 
 Quick python2 script to decode the NTLM SSP authentication because I was not happy with the existing tools.
