@@ -1,0 +1,6 @@
+#!/bin/bash
+
+find . -type f -name '*.cme' | while read i ; do
+    output="$(echo "$i" | sed 's/.cme$/.txt/')"
+    cat "$i" | sed "s/\x1b[^m]*m//g" | tr -d '\0' > "$output"
+done

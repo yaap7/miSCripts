@@ -1,5 +1,51 @@
 # Misc Scripts
 
+
+## clean-cme
+
+Remove colors and null-byte in a [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec) output.
+
+### Usage
+
+`crackmapexec smb 192.168.0.0/24 | tee discover_192.168.0.0-24.cme`
+`crakcmapexec smb … … --lsa | tee …_lsa.cme`
+
+Then:
+
+`clean-cme`
+
+It will find every file with extension `.cme`, and create a clean copy in `.txt` format.
+
+
+
+
+## clean-conf
+
+Remove comments and empty lines.
+
+### Usage
+
+`cat /etc/apache2/apache2.conf | clean-conf`
+
+
+
+
+
+## colorize
+
+Simple way to quickly identify text of interest while keeping the rest of the content.
+Like `grep --color` but also keep the text that does not match.
+
+### Usage
+
+`curl -I https://github.com/ 2>/dev/null | colorize GitHub`
+
+
+See also: [uncolorize](#uncolorize)
+
+
+
+
 ## convert-cme-discover-to-csv.sh
 
 As the name suggests, it converts the output of a simple discovery scan from [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec) to a CSV file.
@@ -421,6 +467,17 @@ Same as the original `split` but split on "new line" (simple wrapper around `hea
 
 **usage**: `split-lines big_file.txt 100`
     will create chunks of 100 lines in big_file.txt-00, big_file.txt-01, etc.
+
+
+
+
+## uncolorize
+
+Remove any control sequence usually used to color text in terminals.
+
+See also: [colorize](#colorize)
+
+
 
 
 ## unhex-passwords.py

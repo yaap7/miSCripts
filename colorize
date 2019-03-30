@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# TODO: complete the script to be able to change color and search for more patterns like last time.
+
+sed 's/\('"$1"'\)/'"$(tput setaf 1)"'\1'"$(tput sgr0)"'/g'
