@@ -69,6 +69,21 @@ TODO:
 Python3 script to retrieve a list of IP addresses which listened on a specific port from a nessus (broken XML) file.
 
 
+
+
+## grep-ip
+
+Print IP patterns from stdin.
+
+### Usage
+
+`cat scan_tcp.gnmap | grep '445/open/tcp' | grep-ip > cibles_port_445.txt`
+
+
+
+
+
+
 ## ldapsearch-ad.py
 
 Python3 script to get various information from a domain controller through his LDAP service.
