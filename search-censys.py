@@ -19,7 +19,9 @@ def main():
     query = ' '.join(args.filter)
     fields = ['ip', 'protocols']
     for result in c.search(query=query, fields=fields):
-        if not args.csv:
+        if args.csv:
+            print('IP,Port')
+        else:
             print('Result for {}'.format(result['ip']))
         for port in result['protocols']:
             if args.csv:
