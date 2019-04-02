@@ -413,6 +413,56 @@ Python3 script to parse Office365 logs.
 Work only on a specific test, so should be greatly enhanced for other test-cases.
 
 
+
+## parse-secretsdump.sh
+
+Shell script to parse the output of [secretsdump.py]() to print statistics and hashcat-ready files. 
+It supports:
+* user/computer accounts
+* history hashes
+* lm/ntlm
+* user status (enabled/disabled)
+
+### Usage
+
+* Print statistics
+
+`parse-secretsdump.sh -s secretsdump_ntds_full_dc1.contoso.intra.txt | csvlook`
+
+```
+| Metric                                                            | Number |
+| ----------------------------------------------------------------- | ------ |
+| Number of total hashes                                            |    320 |
+| Number of computer accounts                                       |     79 |
+| Number of user accounts                                           |    219 |
+| Number of user accounts enabled                                   |    699 |
+| Number of user accounts disabled                                  |    520 |
+| Number of user accounts with unknown status                       |      0 |
+| Number of user accounts with non-empty LM hash                    |    860 |
+| Number of user accounts with non-empty NTLM hash                  |    217 |
+| Number of user accounts with empty NTLM hash                      |      2 |
+| Number of distinct non-empty LM user hashes (including history)   |    856 |
+| Number of distinct non-empty NTLM user hashes (including history) |    181 |
+```
+
+* extract hashes
+
+`parse-secretsdump.sh -e -o hashcat_ntds secretsdump_ntds_full_dc1.contoso.intra.txt`
+
+`ls -1 hashcat_ntds`
+
+```
+all_lm_3000.hash
+all_ntlm_1000.hash
+ntds_base_file.txt
+users_enabled_ntlm_1000.hash
+users_lm_3000.hash
+users_ntlm_1000.hash
+```
+
+
+
+
 ## parse-testssl-json.py
 
 Python3 script to parse the json output of [testssl.sh](https://testssl.sh/).
