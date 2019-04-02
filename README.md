@@ -129,6 +129,33 @@ Print IP patterns from stdin.
 
 
 
+## hashcat-print-stats.sh
+
+Print percentage of cracked passwords for each files.
+
+See file format below.
+
+
+## hashcat-show-all.sh
+
+Run `hashcat` with `--show` and the correct options on multiple `*.hash` files.
+
+Files format:
+
+`[users]filename<hash_type>.<hash|show>`
+
+Examples:
+
+* `users_ntds_ntlm_1000.hash`
+* `all_lm_3000.show`
+
+The `hash_type` is usefull to set the correct `-m` argument.
+
+The files starting by `users` indicate a file containing usernames, so the `--username` argument is needed.
+
+
+
+
 
 
 ## ldapsearch-ad.py
