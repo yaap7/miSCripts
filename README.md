@@ -8,6 +8,7 @@ Remove colors and null-byte in a [CrackMapExec](https://github.com/byt3bl33d3r/C
 ### Usage
 
 `crackmapexec smb 192.168.0.0/24 | tee discover_192.168.0.0-24.cme`
+
 `crakcmapexec smb … … --lsa | tee …_lsa.cme`
 
 Then:
