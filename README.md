@@ -111,11 +111,6 @@ TODO:
 * retrive all information from LLDP trames.
 
 
-## extract-ports-from-nessus.py
-
-Python3 script to retrieve a list of IP addresses which listened on a specific port from a nessus (broken XML) file.
-
-
 
 
 ## grep-ip
@@ -398,6 +393,22 @@ or
 `nat-vm -i wlan0 192.168.56.10`
 
 
+
+
+
+
+## nessus-syn-scan-to-csv.py
+
+Python3 script to retrieve a IP/port/protocol from a nessus (broken XML) file.
+
+`nessus-syn-scan-to-csv.py 192.168.0.1.nessus 192.168.0.2.nessus`
+
+```
+ip,port,protocol
+192.168.0.1,80,tcp
+192.168.0.1,443,tcp
+192.168.0.2,443,tcp
+```
 
 
 
