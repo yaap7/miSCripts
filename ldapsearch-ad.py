@@ -354,7 +354,7 @@ def search_large(args):
     try:
         with ldap3.Connection(server, user=domain_username, password=args.password, authentication='NTLM', auto_bind=True) as conn:
             base_dn = server.info.other.get('defaultNamingContext')[0]
-            search_filter = '(|(cn=*SEARCH_FILTER*)(company=*SEARCH_FILTER*)(department=*SEARCH_FILTER*)(description=*SEARCH_FILTER*)(displayname=*SEARCH_FILTER*)(distinguishedName=*SEARCH_FILTER*)(givenname=*SEARCH_FILTER*)(l=*SEARCH_FILTER*)(mail=*SEARCH_FILTER*)(mailnickname=*SEARCH_FILTER*)(mobile=*SEARCH_FILTER*)(msExchArchiveName=*SEARCH_FILTER*)(name=*SEARCH_FILTER*)(samaccountname=*SEARCH_FILTER*)(sn=*SEARCH_FILTER*)(title=*SEARCH_FILTER*)(userprincipalname=*SEARCH_FILTER*)(wwwhomepage=*SEARCH_FILTER*))'.replace('SEARCH_FILTER', args.search_filter)
+            search_filter = '(|(cn=*SEARCH_FILTER*)(company=*SEARCH_FILTER*)(department=*SEARCH_FILTER*)(description=*SEARCH_FILTER*)(displayname=*SEARCH_FILTER*)(distinguishedName=*SEARCH_FILTER*)(givenname=*SEARCH_FILTER*)(l=*SEARCH_FILTER*)(mail=*SEARCH_FILTER*)(mobile=*SEARCH_FILTER*)(name=*SEARCH_FILTER*)(samaccountname=*SEARCH_FILTER*)(sn=*SEARCH_FILTER*)(title=*SEARCH_FILTER*)(userprincipalname=*SEARCH_FILTER*)(wwwhomepage=*SEARCH_FILTER*))'.replace('SEARCH_FILTER', args.search_filter)
             if args.search_attributes:
                 search_attributes = args.search_attributes
             else:
@@ -622,7 +622,11 @@ def show_user(args):
 def list_user_brief(user):
     """Return a list of brief info of a single user."""
     if str_object_type(user) != 'user':
-        return ['Invalid type for "{}", not a user?'.format(user.sAMAccountName.value)]
+        if 'foreignSecurityPrincipal' in user.objectclass.value:
+            r = ['+ {} (objectclass = foreignSecurityPrincipal, ie. not a user)'.format(user.name.value)]
+        else:
+            r = ['Invalid type for "{}", not a user?'.format(user.name.value)]
+        return r
     uac_flags = list_uac_colored_flags(user.userAccountControl.value)
     uac_flags.remove('NORMAL_ACCOUNT')
     if uac_flags:
@@ -663,6 +667,7 @@ def show_group_members(args):
             members = conn.entries
             logging.info('{} members found:'.format(len(members)))
             for member in members:
+                logging.debug('DEBUG: show member: {}'.format(member))
                 for out_line in list_user_brief(member):
                     logging.info(out_line)
         if args.output_file and groups is not None:
