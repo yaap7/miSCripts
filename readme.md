@@ -1,6 +1,5 @@
 # Misc Scripts
 
-
 ## clean-cme
 
 Remove colors and null-byte in a [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec) output.
@@ -332,7 +331,6 @@ Looking for all password policies on LDAP server 192.168.56.20
 No fine grained password policy found (high privileges are often required).
 ```
 
-
 ### Advanced usage using search
 
 Search for any information using the powerfull ldap filter syntax with `-t search`:
@@ -354,13 +352,17 @@ DN: CN=MTLDC1,OU=Domain Controllers,DC=evilcorp,DC=lab2 - STATUS: Read - READ TI
 
 ### TODO
 
-* give usefull `search` examples ;
+* give usefull `search` examples (see https://phonexicum.github.io/infosec/windows.html and https://blog.xpnsec.com/kerberos-attacks-part-2/) ;
 * add pretty output for other functions (get-user, get-spn, etc) while keeping a json output ;
+* implemente a search for ForeignSecurityPrincipals (When a user/group from an *external* domain/forest are added to a group in a domain, an object of type foreignSecurityPrincipal is created at `CN=<user_SID>,CN=ForeignSecurityPrincipals,DC=domain,DC=com`)
+* implement ldap3 pagging functionality
+* correct bugs from ldap3 v2.6
 * continuously improve this documentation
 
 for v2:
 
 * change the core architecture to create an object and do not open multiple connection for `-t all`
+
 
 ### Credits
 
