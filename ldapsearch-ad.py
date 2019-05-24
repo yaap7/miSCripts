@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import ldap3
 import logging
 import re
@@ -42,7 +43,12 @@ def str_title(title):
 
 
 def str_human_date(date):
-    nb_sec = int((- date ) / 10000000)
+    # ldap3 version 2.6 returns a datetime.timedelta object
+    if isinstance(date, datetime.timedelta):
+        nb_sec = int(date.total_seconds())
+    # older versions return a negative big number
+    else:
+        nb_sec = int((- date ) / 10000000)
     if nb_sec > 60 :
         nb_min = int(nb_sec / 60)
         nb_sec = nb_sec % 60
