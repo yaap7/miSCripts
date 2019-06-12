@@ -354,9 +354,8 @@ DN: CN=MTLDC1,OU=Domain Controllers,DC=evilcorp,DC=lab2 - STATUS: Read - READ TI
 
 * give usefull `search` examples (see https://phonexicum.github.io/infosec/windows.html and https://blog.xpnsec.com/kerberos-attacks-part-2/) ;
 * add pretty output for other functions (get-user, get-spn, etc) while keeping a json output ;
-* implemente a search for ForeignSecurityPrincipals (When a user/group from an *external* domain/forest are added to a group in a domain, an object of type foreignSecurityPrincipal is created at `CN=<user_SID>,CN=ForeignSecurityPrincipals,DC=domain,DC=com`)
+* implement a search for ForeignSecurityPrincipals (When a user/group from an *external* domain/forest are added to a group in a domain, an object of type foreignSecurityPrincipal is created at `CN=<user_SID>,CN=ForeignSecurityPrincipals,DC=domain,DC=com`)
 * implement ldap3 pagging functionality
-* correct bugs from ldap3 v2.6
 * continuously improve this documentation
 
 for v2:

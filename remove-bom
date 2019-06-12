@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ "$#" -le 0 ]] ; then
+    echo 'a file argument is required.' >&2
+    echo "Usage: $0 file_with_bom.txt" >&2
+fi
+
+while [[ "$#" -gt 0 ]] ; do
+    sed -i '1s/^\xEF\xBB\xBF//' "$1"
+    shift
+done
