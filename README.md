@@ -512,7 +512,7 @@ To be continued on next web application pentest.
 
 ## parse-weleakinfo.py
 
-Parse the content of a web page from [WeLeakInfo](https://weleakinfo.com/) and output data in CSV format to be used with [CSVKit](https://csvkit.readthedocs.io/en/latest/)
+Parse the content of a web page from [WeLeakInfo](https://weleakinfo.com/) and output data in CSV format to be used with [CSVKit](https://csvkit.readthedocs.io/en/latest/).
 
 ### Usage
 
@@ -540,6 +540,10 @@ Parse the content of a web page from [WeLeakInfo](https://weleakinfo.com/) and o
 `parse-weleakinfo.py -c Username,Email,Password search_raw_webpage.html`
 
 The output could then be filtered, queried, and shown using CSVKit.
+
+Example to show lines containing a non-empty password:
+
+`parse-weleakinfo.py -c Username,Email,Password search_raw_webpage.html | csvgrep -c Password -r '.' | csvlook`
 
 ## query-bloodhound.py
 
