@@ -508,6 +508,39 @@ Python3 script to parse the json output of [testssl.sh](https://testssl.sh/).
 To be continued on next web application pentest.
 
 
+
+
+## parse-weleakinfo.py
+
+Parse the content of a web page from [WeLeakInfo](https://weleakinfo.com/) and output data in CSV format to be used with [CSVKit](https://csvkit.readthedocs.io/en/latest/)
+
+### Usage
+
+1. Save the plain HTML to a file.
+
+2. Print the type of information found in the page (multiple files could be used at the same time)
+
+`parse-weleakinfo.py -s search_raw_webpage.html`
+
+``` text
+* Username
+* Email
+* First Name
+* Address
+* Password
+* Registered IP Address
+* Date of Birth
+* First Last
+* Phone
+* …
+```
+
+3. Output only specific columns
+
+`parse-weleakinfo.py -c Username,Email,Password search_raw_webpage.html`
+
+The output could then be filtered, queried, and shown using CSVKit.
+
 ## query-bloodhound.py
 
 Python3 script to query a neo4j database pre-filled with BloodHound results.
