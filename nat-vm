@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 
 
 function show_usage() {
@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]] ; do
         show_usage
         ;;
         -i)
-        iface="$2"
+        argiface="$2"
         shift # past argument
         shift # past value
         ;;
@@ -32,8 +32,8 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 iface=eth0
-if [[ "x$iface" != "x" ]]; then
-    iface=eth0
+if [[ "x$argiface" != "x" ]]; then
+    iface="$argiface"
 fi
 
 vm_ip="${POSITIONAL[0]}"
