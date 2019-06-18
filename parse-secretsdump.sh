@@ -34,7 +34,7 @@ function l_keep_only_computer_accounts() {
     cat - | grep -E '^[^:]*\$(_history[0-9]*)?:[0-9]*:[0-9a-f]{32}:[0-9a-f]{32}:::( \(status=[a-zA-Z]*\))?$'
 }
 function l_remove_computer_accounts() {
-    cat - | grep -E '^[^:$]*(_history[0-9]*)?:[0-9]*:[0-9a-f]{32}:[0-9a-f]{32}:::( \(status=[a-zA-Z]*\))?$'
+    cat - | grep -v -E '^[^:]*\$(_history[0-9]*)?:[0-9]*:[0-9a-f]{32}:[0-9a-f]{32}:::( \(status=[a-zA-Z]*\))?$'
 }
 function l_remove_history() {
     cat - | grep -vE '^[^:]*_history[0-9]*(\$)?:'
