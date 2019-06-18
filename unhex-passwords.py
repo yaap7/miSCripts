@@ -5,10 +5,10 @@ import sys
 
 
 def unhex_line(line):
-    regex = re.compile('\$HEX\[([a-fA-F0-9]*)\]')
+    regex = re.compile(r'\$HEX\[([a-fA-F0-9]*)\]')
     while re.search(regex, line):
         try:
-            decoded = bytes.fromhex(re.search(regex, line).group(1)).decode('iso-8859-1')
+            decoded = bytes.fromhex(regex.search(line).group(1)).decode('iso-8859-1')
             # patch to avoid issue with '\9' in decoded
             decoded = decoded.replace('\\', '\\\\')
             line = regex.sub(decoded, line.strip())
