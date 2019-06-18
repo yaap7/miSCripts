@@ -31,34 +31,34 @@ function l_keep_only_ascii_charset() {
     cat - | tr -d -c '[ -~\n]'
 }
 function l_keep_only_computer_accounts() {
-    cat - | grep -E '^[^:]*\$(_history[0-9]*)?:[0-9]*:[0-9a-f]{32}:[0-9a-f]{32}:::( \(status=[a-zA-Z]*\))?$'
+    cat - | grep -E '^[^:]*\$(_history[0-9]*)?:'
 }
 function l_remove_computer_accounts() {
-    cat - | grep -v -E '^[^:]*\$(_history[0-9]*)?:[0-9]*:[0-9a-f]{32}:[0-9a-f]{32}:::( \(status=[a-zA-Z]*\))?$'
+    cat - | grep -v -E '^[^:]*\$(_history[0-9]*)?:'
 }
 function l_remove_history() {
-    cat - | grep -vE '^[^:]*_history[0-9]*(\$)?:'
+    cat - | grep -v -E '^[^:]*_history[0-9]*(\$)?:'
 }
 function l_remove_empty_lm() {
-    cat - | grep -v 'aad3b435b51404eeaad3b435b51404ee'
+    cat - | grep -v -F 'aad3b435b51404eeaad3b435b51404ee'
 }
 function l_remove_empty_ntlm() {
-    cat - | grep -v '31d6cfe0d16ae931b73c59d7e0c089c0'
+    cat - | grep -v -F '31d6cfe0d16ae931b73c59d7e0c089c0'
 }
 function l_keep_only_empty_ntlm() {
-    cat - | grep '31d6cfe0d16ae931b73c59d7e0c089c0'
+    cat - | grep -F '31d6cfe0d16ae931b73c59d7e0c089c0'
 }
 function l_keep_only_enabled_accounts() {
-    cat - | grep '(status=Enabled)$'
+    cat - | grep -E '(status=Enabled)$'
 }
 function l_keep_only_disabled_accounts() {
-    cat - | grep '(status=Disabled)$'
+    cat - | grep -E '(status=Disabled)$'
 }
 function l_keep_only_cleartext_passwords() {
-    cat - | grep -E '^[^:$]*(_history[0-9]*)?:CLEARTEXT:'
+    cat - | grep -E '^[^:]*:CLEARTEXT:'
 }
 function l_remove_cleartext_passwords() {
-    cat - | grep -v -E '^[^:$]*(_history[0-9]*)?:CLEARTEXT:'
+    cat - | grep -v -E '^[^:]*:CLEARTEXT:'
 }
 
 
@@ -116,29 +116,29 @@ if [[ "x$action" == "xstats" ]] ; then
     echo -n 'Number of total hashes,'
     cat "$outdir/$base_file" | wc -l
     echo -n 'Number of computer accounts,'
-    cat "$outdir/$base_file" | l_keep_only_computer_accounts | l_remove_history | wc -l
+    cat "$outdir/$base_file" | l_keep_only_computer_accounts | l_remove_cleartext_passwords | l_remove_history | wc -l
     echo -n 'Number of user accounts,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | wc -l
     echo -n 'Number of user accounts enabled,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | grep '(status=Enabled)$' | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | grep '(status=Enabled)$' | wc -l
     echo -n 'Number of user accounts disabled,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | grep '(status=Disabled)$' | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | grep '(status=Disabled)$' | wc -l
     echo -n 'Number of user accounts with unknown status,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | grep -v -e '(status=Enabled)$' -e '(status=Disabled)$' | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | grep -v -e '(status=Enabled)$' -e '(status=Disabled)$' | wc -l
     echo -n 'Number of user accounts with non-empty LM hash,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | l_remove_empty_lm | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | l_remove_empty_lm | wc -l
     echo -n 'Number of user accounts with non-empty NTLM hash,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | l_remove_empty_ntlm | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | l_remove_empty_ntlm | wc -l
     echo -n 'Number of user accounts with empty NTLM hash,'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | l_keep_only_empty_ntlm | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | l_remove_history | l_keep_only_empty_ntlm | wc -l
     echo -n 'Number of distinct non-empty LM user hashes (including history),'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | cut -d: -f3 | l_remove_empty_lm | sort -u | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | cut -d: -f3 | l_remove_empty_lm | sort -u | wc -l
     echo -n 'Number of distinct non-empty NTLM user hashes (including history),'
-    cat "$outdir/$base_file" | l_remove_computer_accounts | cut -d: -f4 | l_remove_empty_ntlm | sort -u | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_cleartext_passwords | cut -d: -f4 | l_remove_empty_ntlm | sort -u | wc -l
     echo -n 'Number of cleartext passwords for user accounts,'
-    cat "$outdir/$base_file" | l_keep_only_cleartext_passwords | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_keep_only_cleartext_passwords | wc -l
     echo -n 'Number of distinct cleartext passwords for user accounts,'
-    cat "$outdir/$base_file" | l_keep_only_cleartext_passwords | cut -d: -f3- | sort -u | wc -l
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_keep_only_cleartext_passwords | cut -d: -f3- | sort -u | wc -l
     ls -1 "$outdir"/*.hash 2>/dev/null | while read fil ; do
         debug "parse $fil file"
         fil_show="${fil%.*}.show"
@@ -159,16 +159,16 @@ if [[ "x$action" == "xextract" ]] ; then
     cat "$outdir/$base_file" | l_remove_cleartext_passwords | l_remove_history | cut -d: -f1,3 | l_remove_empty_lm > "$outdir/users_lm_3000.hash"
     [[ ! -s "$outdir/users_lm_3000.hash" ]] && rm "$outdir/users_lm_3000.hash"
     ## extract NTLM
-    cat "$outdir/$base_file" | l_remove_computer_accounts | cut -d: -f4 | sort -u > "$outdir/all_ntlm_1000.hash"
+    cat "$outdir/$base_file" | l_remove_cleartext_passwords | l_remove_computer_accounts | cut -d: -f4 | sort -u > "$outdir/all_ntlm_1000.hash"
     [[ ! -s "$outdir/all_ntlm_1000.hash" ]] && rm "$outdir/all_ntlm_1000.hash"
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | cut -d: -f1,4 > "$outdir/users_ntlm_1000.hash"
+    cat "$outdir/$base_file" | l_remove_cleartext_passwords | l_remove_computer_accounts | l_remove_history | cut -d: -f1,4 > "$outdir/users_ntlm_1000.hash"
     [[ ! -s "$outdir/users_ntlm_1000.hash" ]] && rm "$outdir/users_ntlm_1000.hash"
-    cat "$outdir/$base_file" | l_remove_computer_accounts | l_remove_history | grep '(status=Enabled)$' | cut -d: -f1,4 > "$outdir/users_enabled_ntlm_1000.hash"
+    cat "$outdir/$base_file" | l_remove_cleartext_passwords | l_remove_computer_accounts | l_remove_history | grep '(status=Enabled)$' | cut -d: -f1,4 > "$outdir/users_enabled_ntlm_1000.hash"
     [[ ! -s "$outdir/users_enabled_ntlm_1000.hash" ]] && rm "$outdir/users_enabled_ntlm_1000.hash"
     ## extract cleartext passwords of user accounts
-    cat "$outdir/$base_file" | l_keep_only_cleartext_passwords | cut -d: -f1,3- > "$outdir/users_cleartext_passwords.txt"
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_keep_only_cleartext_passwords | cut -d: -f1,3- > "$outdir/users_cleartext_passwords.txt"
     [[ ! -s "$outdir/users_cleartext_passwords.txt" ]] && rm "$outdir/users_cleartext_passwords.txt"
-    cat "$outdir/$base_file" | l_keep_only_cleartext_passwords | cut -d: -f3- | sort -u > "$outdir/cleartext_passwords.txt"
+    cat "$outdir/$base_file" | l_remove_computer_accounts | l_keep_only_cleartext_passwords | cut -d: -f3- | sort -u > "$outdir/cleartext_passwords.txt"
     [[ ! -s "$outdir/cleartext_passwords.txt" ]] && rm "$outdir/cleartext_passwords.txt"
 fi
 
