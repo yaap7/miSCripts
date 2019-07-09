@@ -1,5 +1,30 @@
 #!/bin/bash
 
-# TODO: complete the script to be able to change color and search for more patterns like last time.
+transform=''
+while [[ $# -ge 1 ]] ; do
+  if [[ $# -eq 1 ]] ; then
+    transform="${transform}"'s/\('"$1"'\)/'"$(tput setaf 1)"'\1'"$(tput sgr0)"'/g;'
+  else
+    if [[ "x$2" == "xred" ]] ; then
+      color=1
+    elif [[ "x$2" == "xgreen" ]] ; then
+      color=2
+    elif [[ "x$2" == "xorange" ]] ; then
+      color=3
+    elif [[ "x$2" == "xblue" ]] ; then
+      color=4
+    elif [[ "x$2" == "xmagenta" ]] ; then
+      color=5
+    elif [[ "x$2" == "xcyan" ]] ; then
+      color=6
+    else
+      echo '$2 must be one of: red, green, orange, blue, magenta, cyan' &1>2
+      exit 1
+    fi
+    transform="${transform}"'s/\('"$1"'\)/'"$(tput setaf "${color}")"'\1'"$(tput sgr0)"'/g;'
+  fi
+  shift ; shift
+done
 
-sed 's/\('"$1"'\)/'"$(tput setaf 1)"'\1'"$(tput sgr0)"'/g'
+sed "${transform}"
+
