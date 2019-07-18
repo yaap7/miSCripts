@@ -1,0 +1,42 @@
+#!/bin/bash
+
+function show_usage() {
+  echo "Usage: $0 <part_of_process_name>"
+  echo '  Example:'
+  echo '      '"$0"' rsync'
+  exit 0
+}
+
+function debug() {
+  [[ "x$DEBUG" == "x1" ]] && echo "$@"
+  echo -n ''
+}
+
+# configuration
+DEBUG='0'
+
+if [[ $# -ne 1 ]] ; then
+  show_usage
+fi
+
+num_result="$(ps -ef | grep -v grep | grep -v "$0" | grep "$1" | wc -l)"
+
+if [[ $num_result -gt 1 ]] ; then
+  echo 'More than one process found. Please narrow your search term. Result:' >&2
+  ps -ef | grep -v grep | grep -v "$0" | grep "$1"
+  exit 2
+fi
+
+if [[ $num_result -lt 1 ]] ; then
+  echo 'No process found.' >&2
+  exit 3
+fi
+
+pid="$(ps -ef | grep -v grep | grep -v "$0" | grep "$1" | awk '{print $2}')"
+debug "pid to watch = $pid"
+
+while ps -ef | grep -v grep | grep -q "$pid" ; do
+  sleep 5
+done
+
+notify-send -i info -t 600000 "Process '$1' terminated."
