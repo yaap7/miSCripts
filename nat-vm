@@ -1,13 +1,15 @@
-    #!/bin/bash
+#!/bin/bash
 
 
 function show_usage() {
-    echo "Basic usage: $0 -i <iface> <vm_ip>"
+    echo "Basic usage: $0 [-i <iface>] [-d] <vm_ip>"
     echo "Example: $0 -i eth0 192.168.56.10"
     echo "default interface: eth0"
+    echo "-d = remove configuration"
     exit 0
 }
 
+remove="0"
 
 # argument parsing
 # see: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
@@ -22,6 +24,10 @@ while [[ $# -gt 0 ]] ; do
         argiface="$2"
         shift # past argument
         shift # past value
+        ;;
+        -d)
+        remove="1"
+        shift # past argument
         ;;
         *)    # unknown option
         POSITIONAL+=("$1") # save it in an array for later
@@ -39,8 +45,16 @@ fi
 vm_ip="${POSITIONAL[0]}"
 [[ -z $vm_ip ]] && show_usage
 
-sudo bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
-sudo iptables -I FORWARD -s "$vm_ip" -j ACCEPT
-sudo iptables -I FORWARD -d "$vm_ip" -j ACCEPT
-sudo iptables -A POSTROUTING -t nat -o "$iface" -j MASQUERADE
-
+if [[ "x$remove" == "0" ]] ; then
+    sudo bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
+    sudo iptables -I FORWARD -s "$vm_ip" -j ACCEPT
+    sudo iptables -I FORWARD -d "$vm_ip" -j ACCEPT
+    sudo iptables -A POSTROUTING -t nat -o "$iface" -j MASQUERADE
+else
+    sudo iptables -D POSTROUTING -t nat -o "$iface" -j MASQUERADE
+    sudo iptables -D FORWARD -d "$vm_ip" -j ACCEPT
+    sudo iptables -D FORWARD -s "$vm_ip" -j ACCEPT
+    # do not remove forwading by default
+    # just in case it is used for something else
+    #sudo bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
+fi
