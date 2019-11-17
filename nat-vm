@@ -45,7 +45,7 @@ fi
 vm_ip="${POSITIONAL[0]}"
 [[ -z $vm_ip ]] && show_usage
 
-if [[ "x$remove" == "0" ]] ; then
+if [[ "x$remove" == "x0" ]] ; then
     sudo bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
     sudo iptables -I FORWARD -s "$vm_ip" -j ACCEPT
     sudo iptables -I FORWARD -d "$vm_ip" -j ACCEPT
