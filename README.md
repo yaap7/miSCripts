@@ -1,16 +1,5 @@
 # Misc Scripts
 
-## ldapsearch-ad.py
-
-Python3 script to quickly get various information from a domain controller through his LDAP service.
-
-I'm used to launch it as soon as I get valid AD credentials, after [BloodHound](https://github.com/BloodHoundAD/BloodHound) and [PingCastle](https://www.pingcastle.com/).
-
-
-
-
-
-
 
 ## clean-cme
 
@@ -81,7 +70,7 @@ ip,domain,hostname,signing,smbv1,os
 [...snip...]
 ```
 
-Could be easily pretty-printed using csvlook (from [csvkit](https://csvkit.readthedocs.io/en/latest/)):
+Could be easily pretty-printed using `csvlook` (from [csvkit](https://csvkit.readthedocs.io/en/latest/)):
 
 `cat discover_192.168.0.0-24.cme | convert-cme-discover-to-csv.sh | csvlook`
 
@@ -161,6 +150,13 @@ The files starting by `users` indicate a file containing usernames, so the `--us
 
 
 
+## ldapsearch-ad.py
+
+Python3 script to quickly get various information from a domain controller through his LDAP service.
+
+Moved here: [https://github.com/yaap7/ldapsearch-ad](https://github.com/yaap7/ldapsearch-ad)
+
+
 
 
 ## lyncsmash_gg.py
@@ -178,7 +174,7 @@ Simple script to add the correct `iptables` rules to NAT a VM in `host-only adap
 
 `nat-vm -h`
 
-```
+``` text
 Basic usage: /home/gg/bin/nat-vm -i <iface> <vm_ip>
 Example: /home/gg/bin/nat-vm -i eth0 192.168.56.10
 default interface: eth0
@@ -195,7 +191,7 @@ or
 
 ## nessus-syn-scan-to-csv.py
 
-Python3 script to retrieve a IP/port/protocol from a nessus (broken XML) file.
+Python3 script to retrieve an IP/port/protocol from a nessus (broken XML) file.
 
 `nessus-syn-scan-to-csv.py 192.168.0.1.nessus 192.168.0.2.nessus`
 
@@ -225,15 +221,18 @@ Show the NTLM hash of each line (from a file, or inline).
 $ ./ntlmsum 'P@$$w0rd'
 f56a8399599f1be040128b1dd9623c29
 ```
+
 ```
 $ cat pass.txt | ./ntlmsum 
 f56a8399599f1be040128b1dd9623c29
 ```
+
 ```
 $ ./ntlmsum 'P@$$w0rd' 'Ub3r_$3cRe7'
 f56a8399599f1be040128b1dd9623c29
 733aac45c620a5c11c9e03a40262fc7c
 ```
+
 ```
 $ cat multipass.txt | ./ntlmsum
 f56a8399599f1be040128b1dd9623c29
@@ -250,7 +249,7 @@ Work only on a specific test, so should be greatly enhanced for other test-cases
 
 ## parse-secretsdump.sh
 
-Shell script to parse the output of [secretsdump.py]() to print statistics and hashcat-ready files. 
+Shell script to parse the output of [secretsdump.py](https://github.com/yaap7/wiKB/blob/master/tools/impacket.md#secretsdumppy) to print statistics and hashcat-ready files. 
 It supports:
 * user/computer accounts
 * history hashes
@@ -300,7 +299,8 @@ users_ntlm_1000.hash
 ## parse-testssl-json.py
 
 Python3 script to parse the json output of [testssl.sh](https://testssl.sh/).
-To be continued on next web application pentest.
+
+WIP: To be continued on next web application pentest.
 
 
 
