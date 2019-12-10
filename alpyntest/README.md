@@ -15,7 +15,7 @@ A small docker image to embed python3 pentest tools used to Active Directory enu
 `cd` to this directory and launch `docker build`:
 
 ``` bash
-docker build -t alpyntest .
+docker build -t alpyntest --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .
 ```
 
 ## Create Container from Image
@@ -23,6 +23,6 @@ docker build -t alpyntest .
 Use the bash alias from [bash_alias](bash_alias) or customize this base command:
 
 ``` bash
-docker run -it --rm -v $PWD:/root alpyntest
+docker run -it --rm -v $PWD:/data alpyntest /bin/sh -l
 ```
 
