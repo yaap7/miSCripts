@@ -1,0 +1,1 @@
+alias run-alpyntest='docker run -it --rm -v $PWD:/root alpyntest'
