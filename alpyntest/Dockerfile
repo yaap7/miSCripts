@@ -3,7 +3,7 @@ FROM alpine:latest
 ARG USER_ID
 ARG GROUP_ID
 
-# Dockerfile based on:
+# Dockerfile shamelessly based on:
 # https://github.com/Docker-Hub-frolvlad/docker-alpine-python3/blob/master/Dockerfile
 
 # This hack is widely applied to avoid python printing issues in docker containers.
@@ -11,6 +11,7 @@ ARG GROUP_ID
 ENV PYTHONUNBUFFERED=1
 
 ADD startup.sh /etc/profile.d/startup.sh
+ADD discover-ip.sh /usr/local/bin/discover-ip.sh
 
 RUN echo "**** configuring user ****" && \
         addgroup -g ${GROUP_ID} pentest && \
@@ -26,6 +27,8 @@ RUN echo "**** configuring user ****" && \
     echo "**** install git ****" && \
         apk add git && \
         mkdir /tools && cd /tools && \
+    echo "**** install csvkit ****" && \
+        pip install csvkit && \
     echo "**** install ldapsearch-ad ****" && \
         git clone https://github.com/yaap7/ldapsearch-ad && \
         pip install -r ldapsearch-ad/requirements.txt && \
@@ -55,7 +58,20 @@ RUN echo "**** configuring user ****" && \
         pip install -r requirements.txt && \
         python ./setup.py install && \
         cd .. && \
+    echo "**** install ntlmrecon ****" && \
+        git clone https://github.com/sachinkamath/ntlmrecon && \
+        cd ntlmrecon && \
+        pip install -r requirements.pip && \
+        python ./setup.py install && \
+        cd .. && \
+    echo "**** install Enum4LinuxPy ****" && \
+        git clone https://github.com/0v3rride/Enum4LinuxPy && \
+        cd Enum4LinuxPy && \
+        pip install -r requirements.txt && \
+        chmod a+x Enum4LinuxPy.py && \
+        ln -s /tools/Enum4LinuxPy/Enum4LinuxPy.py /usr/local/bin/Enum4LinuxPy.py && \
+        ln -s /tools/Enum4LinuxPy/Enum4LinuxPy.py /usr/local/bin/enum4linuxpy.py && \
+        cd .. && \
     echo "**** NOT installing CrackMapExec. ****" && \
     echo "**** still have issues with python3 ****" && \
     echo "**** Finshed ****"
-
