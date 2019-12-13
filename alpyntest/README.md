@@ -5,7 +5,7 @@ A small docker image to embed python3 pentest tools used to Active Directory enu
 ## Installed Tools
 
 * [x] [python3](https://pkgs.alpinelinux.org/package/edge/main/x86/python3) with pip
-* [x] [csvkit](https://pkgs.alpinelinux.org/package/edge/main/x86/python3) with pip
+* [x] [csvkit](https://pkgs.alpinelinux.org/package/edge/main/x86/python3)
 * [x] [git](https://pkgs.alpinelinux.org/package/edge/main/x86/git)
 * [x] [ldapsearch-ad](https://github.com/yaap7/ldapsearch-ad)
 * [x] [impacket](https://github.com/SecureAuthCorp/impacket)
