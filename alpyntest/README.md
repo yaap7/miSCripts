@@ -34,6 +34,7 @@ docker run -it --rm -v $PWD:/data alpyntest /bin/sh -l
 
 ## TODO
 
+* [ ] add a [Python-based BloodHound Ingestor](https://github.com/fox-it/BloodHound.py)
 * [ ] integrate CrackMapExec once a valid python3 version is available (see [byt3bl33d3r/CrackMapExec#323](https://github.com/byt3bl33d3r/CrackMapExec/pull/323))
 * [x] a [first script](discover-ip.sh) to use all tools before having a first valid account (so mostly systems enumeration)
 * [ ] a second script to use all tools once we get a valid user account (Active Directory enumeration)
