@@ -1,0 +1,9 @@
+#!/bin/bash
+
+_r="$(cat -)"
+_l=$((${#_r} % 4))
+if [ $_l -eq 2 ]; then _s="$_r"'=='
+elif [ $_l -eq 3 ]; then _s="$_r"'='
+else _s="$_r" ; fi
+echo "$_s" | tr '_-' '/+' | openssl enc -d -a -A
+echo ''

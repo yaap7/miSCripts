@@ -1,0 +1,4 @@
+#!/bin/bash
+
+openssl enc -a -A | tr -d '=' | tr '/+' '_-'
+echo ''

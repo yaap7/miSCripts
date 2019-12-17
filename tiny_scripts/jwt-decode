@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "$#"
+
+if [[ "$#" -lt '1' ]] ; then
+  echo "Usage $0 <JWT> [<JWT>] ..." >&2
+  exit 1
+fi
+
+while [[ "$#" -gt '0' ]] ; do
+  h="$(echo $1 | cut -d'.' -f 1)"
+  p="$(echo $1 | cut -d'.' -f 2)"
+  s="$(echo $1 | cut -d'.' -f 3)"
+  echo "### HEADER ###"
+  echo "$h" | base64url-decode
+  echo "### PAYLOAD ###"
+  echo "$p" | base64url-decode
+  echo "### SIGNATURE ###"
+  echo "$s" | base64url-decode | xxd -ps | tr -d '\n'
+  echo ''
+  shift
+done
