@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 find . -type f -name '*.cme' | while read i ; do
     output="$(echo "$i" | sed 's/.cme$/.txt/')"
