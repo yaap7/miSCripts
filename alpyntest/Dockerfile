@@ -25,7 +25,7 @@ RUN echo "**** configuring user ****" && \
         pip3 install --no-cache --upgrade pip setuptools wheel && \
         if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
     echo "**** install git ****" && \
-        apk add git && \
+        apk add --no-cache git && \
         mkdir /tools && cd /tools && \
     echo "**** install csvkit ****" && \
         pip install csvkit && \
@@ -35,12 +35,13 @@ RUN echo "**** configuring user ****" && \
         ln -s /tools/ldapsearch-ad/ldapsearch-ad.py /usr/local/bin/ && \
     echo "**** install various scripts ****" && \
         git clone https://github.com/yaap7/miSCripts && \
-        ln -s /tools/miSCripts/parse-secretsdump.sh /usr/local/bin/ && \
+        ln -s /tools/miSCripts/parse-secretsdump /usr/local/bin/ && \
         ln -s /tools/miSCripts/tiny_scripts/ntlmsum /usr/local/bin/ && \
         ln -s /tools/miSCripts/tiny_scripts/grep-ip.py /usr/local/bin/ && \
         ln -s /tools/miSCripts/tiny_scripts/unhex-passwords.py /usr/local/bin/ && \
+        ln -s /tools/miSCripts/clean-cme /usr/local/bin/ && \
     echo "**** install other tools' dependencies ****" && \
-        apk add gcc make libffi-dev libc-dev python3-dev openssl-dev && \
+        apk add --no-cache gcc make libffi-dev libc-dev python3-dev openssl openssl-dev samba-client && \
     echo "**** install impacket ****" && \
         git clone https://github.com/SecureAuthCorp/impacket && \
         cd impacket && \
@@ -72,6 +73,40 @@ RUN echo "**** configuring user ****" && \
         ln -s /tools/Enum4LinuxPy/Enum4LinuxPy.py /usr/local/bin/Enum4LinuxPy.py && \
         ln -s /tools/Enum4LinuxPy/Enum4LinuxPy.py /usr/local/bin/enum4linuxpy.py && \
         cd .. && \
-    echo "**** NOT installing CrackMapExec. ****" && \
-    echo "**** still have issues with python3 ****" && \
+    echo "**** install BloodHound.py ****" && \
+        git clone https://github.com/fox-it/BloodHound.py && \
+        cd BloodHound.py && \
+        python ./setup.py install && \
+        cd .. && \
+    echo "**** install mpgn version of CrackMapExec. ****" && \
+        git clone --recursive https://github.com/mpgn/CrackMapExec && \
+        cd CrackMapExec && \
+        git checkout python3 && \
+        cd cme/thirdparty/impacket && \
+        git pull origin master && \
+        python setup.py install && \
+        cd ../pywerview && \
+        git remote rm origin && \
+        git remote add origin https://github.com/mpgn/pywerview && \
+        git remote add upstream https://github.com/the-useless-one/pywerview && \
+        git pull origin master && \
+        python setup.py install && \
+        cd ../../../ && \
+        # import lsassy module
+        cp /tools/lsassy/cme/lsassy.py cme/modules/ && \
+        # don't need to patch wmiexec.py since mpgn version of CME already have the patch
+        # but we need to patch the few modules using StringIO (see: https://stackoverflow.com/questions/11914472/stringio-in-python3)
+        sed -i  's_from StringIO import StringIO_from io import StringIO_' cme/modules/* && \
+        # finally, install the whole bundle!
+        python setup.py clean --all && \
+        python setup.py install && \
+        cd .. && \
+        # fix a SyntaxWarning due to python 3.8 (__init__.py:189: SyntaxWarning: "is not" with a literal. Did you mean "!="?)
+        sed -i "s_ is not ''_ != ''_" /usr/lib/python3.8/site-packages/netaddr-0.7.19-py3.8.egg/netaddr/strategy/__init__.py && \
+    echo "**** download procdump ****" && \
+        cd /tmp && \
+        wget https://download.sysinternals.com/files/Procdump.zip && \
+        unzip Procdump.zip && \
+        rm Procdump.zip Eula.txt && \
     echo "**** Finshed ****"
+

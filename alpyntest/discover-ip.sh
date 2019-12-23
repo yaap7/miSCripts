@@ -11,7 +11,7 @@ if [ "x$(echo $1 | grep-ip.py)" != "x$1" ] ; then
 fi
 
 echo "Discovering $1"
-# crackmapexec smb "$1"
+crackmapexec smb "$1"
 ldapsearch-ad.py -t info -l "$1"
 ntlmrecon --outfile "/tmp/ntlmrecon_$1.csv" --input "$1"
 csvlook "/tmp/ntlmrecon_$1.csv"
