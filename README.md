@@ -101,6 +101,18 @@ Print IP patterns from stdin.
 
 `cat scan_tcp.gnmap | grep '445/open/tcp' | grep-ip > cibles_port_445.txt`
 
+## grep-hash-ntlm
+
+Grep for NTLM hash strings.
+
+**Warning**: MD5 and LM hashes have the same format, so they will also be grepped.
+
+### grep-hash-ntlm usage
+
+``` bash
+cat big_unsorted_logs.txt | grep-hash-ntlm
+```
+
 ## hashcat-print-stats.sh
 
 Print percentage of cracked passwords for each files.
