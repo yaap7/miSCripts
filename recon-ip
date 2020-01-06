@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# requirements:
+# * curl
+# * shodan (pip install shodan)
+# * censys (pip install censys)
+# * greynoise (pip install greynoise)
+
+if [[ "$#" -lt 1 ]] ; then
+    echo "Usage: $0 <ip> [<ip> ...]" >&2
+    exit 1
+fi
+
+while [[ "$#" -gt 0 ]] ; do
+    if which curl >/dev/null ; then
+        echo -e "\e[93mipinfo.io result for $1\e[0m"
+        curl -s ipinfo.io/"$1"
+        echo ''
+    elif which wget >/dev/null ; then
+        echo -e "\e[93mipinfo.io result for $1\e[0m"
+        wget -q -O - ipinfo.io/"$1"
+        echo ''
+    fi
+    if which shodan >/dev/null ; then
+        echo -e "\e[93mshodan result for $1\e[0m"
+        shodan host "$1"
+    fi
+    if which censys >/dev/null ; then
+        echo -e "\e[93mcensys result for $1\e[0m"
+        censys "$1"
+    fi
+    if which greynoise >/dev/null ; then
+        echo -e "\e[93mgreynoise result for $1\e[0m"
+        greynoise "$1"
+    fi
+    shift
+done

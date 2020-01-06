@@ -197,7 +197,7 @@ f56a8399599f1be040128b1dd9623c29
 ```
 
 ``` text
-$ cat pass.txt | ./ntlmsum 
+$ cat pass.txt | ./ntlmsum
 f56a8399599f1be040128b1dd9623c29
 ```
 
@@ -220,7 +220,7 @@ Work only on a specific test, so should be greatly enhanced for other test-cases
 
 ## parse-secretsdump.sh
 
-Shell script to parse the output of [secretsdump.py](https://github.com/yaap7/wiKB/blob/master/tools/impacket.md#secretsdumppy) to print statistics and hashcat-ready files. 
+Shell script to parse the output of [secretsdump.py](https://github.com/yaap7/wiKB/blob/master/tools/impacket.md#secretsdumppy) to print statistics and hashcat-ready files.
 
 It supports:
 
@@ -282,20 +282,20 @@ Parse the content of a web page from [WeLeakInfo](https://weleakinfo.com/) and o
 
 2. Print the type of information found in the page (multiple files could be used at the same time)
 
-`parse-weleakinfo.py -s search_raw_webpage.html`
+    `parse-weleakinfo.py -s search_raw_webpage.html`
 
-``` text
-* Username
-* Email
-* First Name
-* Address
-* Password
-* Registered IP Address
-* Date of Birth
-* First Last
-* Phone
-* …
-```
+    ``` text
+    * Username
+    * Email
+    * First Name
+    * Address
+    * Password
+    * Registered IP Address
+    * Date of Birth
+    * First Last
+    * Phone
+    * …
+    ```
 
 3. Output only specific columns
 
@@ -313,6 +313,18 @@ Python3 script to query a neo4j database pre-filled with BloodHound results.
 For the moment, just return the list of computer where a specific user have administrative rights.
 
 To be continued.
+
+## recon-ip
+
+Get as much information as possible about an IP address.
+
+``` bash
+recon-ip 54.90.107.240 1.1.1.1
+```
+
+Could use `curl` or `wget`, `shodan`, `censys`, and `greynoise` for the moment.
+
+Install optionnal requirements: `pip install shodan censys greynoise`
 
 ## remove-powershell-multilines-comments.py
 
