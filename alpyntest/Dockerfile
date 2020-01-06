@@ -102,7 +102,8 @@ RUN echo "**** configuring user ****" && \
         python setup.py install && \
         cd .. && \
         # fix a SyntaxWarning due to python 3.8 (__init__.py:189: SyntaxWarning: "is not" with a literal. Did you mean "!="?)
-        sed -i "s_ is not ''_ != ''_" /usr/lib/python3.8/site-packages/netaddr-0.7.19-py3.8.egg/netaddr/strategy/__init__.py && \
+        # the file does not exist anymore??
+        # sed -i "s_ is not ''_ != ''_" /usr/lib/python3.8/site-packages/netaddr-0.7.19-py3.8.egg/netaddr/strategy/__init__.py && \
     echo "**** download procdump ****" && \
         cd /tmp && \
         wget https://download.sysinternals.com/files/Procdump.zip && \
