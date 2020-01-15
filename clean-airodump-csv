@@ -1,0 +1,13 @@
+#!/bin/bash
+
+function clean-airodumpng-csv() {
+    grep -e '^BSSID' -e '[A-Fa-f0-9:]\{17\}, [0-9-]* [0-9:]*, [0-9-]* [0-9:]*, [0-9]*, [0-9]*,' | \
+    sed 's/, */,/g;s/ *,/,/g;s/0\.  0\.  0\.  0/0.0.0.0/g'
+}
+
+if [[ "x$1" != "x" ]] ; then
+    cat "$1" | clean-airodumpng-csv
+else
+    clean-airodumpng-csv
+fi
+
