@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "$(cat /dev/urandom | head -c 4 | xxd -ps)-$(cat /dev/urandom | head -c 2 | xxd -ps)-$(cat /dev/urandom | head -c 2 | xxd -ps)-$(cat /dev/urandom | head -c 2 | xxd -ps)-$(cat /dev/urandom | head -c 6 | xxd -ps)"
