@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# cat a file with a url per line
+
+function success() {
+	echo -e "\e[32m[V]\e[0m ${1}"
+}
+
+function info() {
+	echo -e "\e[33m[I]\e[0m ${1}"
+}
+
+function error() {
+	echo -e "\e[31m[E]\e[0m ${1}"
+}
+
+function debug() {
+	echo "$1"
+}
+
+
+cat - | while read url ; do
+	ip=$(dig "$url" +short)
+	if [[ "x$ip" == "x" ]] ; then
+		error "$url - has no IP address."
+		continue
+	fi
+	# for port in 80 443 ; do
+	# 	if nc -znw 2 172.217.13.163 "$port" >/dev/null 2>&1 ; then
+	# 		info "$url - port $port is open."
+	# 	else
+	# 		error "$url - port $port is unreachable."
+	# 	fi
+	# done
+	code=$(curl -o /dev/null --connect-timeout 2 --silent --head --write-out '%{http_code}\n' "$url")
+	if [[ $code -ge 400 ]] ; then
+		info "$url - GET / returns a $code"
+	else
+		success "$url - GET / returns a $code"
+	fi
+
+done
