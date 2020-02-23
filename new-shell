@@ -1,0 +1,29 @@
+#!/bin/bash
+
+echo 'shopt -s histappend'
+echo 'export HISTCONTROL=ignoredups:erasedups'
+
+echo 'if [[ $(id -u) -eq "0" ]] ; then'
+echo 'export PS1='"'"'${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u\[\033[00m\]@'"'"
+echo 'else'
+echo 'export PS1='"'"'${debian_chroot:+($debian_chroot)}\[\033[00;32m\]\u\[\033[00m\]@'"'"
+echo 'fi'
+echo 'if [[ -z "${SSH_CONNECTION}" ]] ; then'
+echo 'export PS1="${PS1}"'"'"'\[\033[00;37m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '"'"
+echo 'else'
+echo 'export PS1="${PS1}"'"'"'\[\033[01;36m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '"'"
+echo 'fi'
+
+echo 'alias l="ls -lh --color=auto"'
+echo 'alias ll="ls -alh --color=auto"'
+echo 'alias grep="grep --color"'
+
+echo 'alias clean-conf="sed -e '"'"'s/#.*//g'"'"' | grep -v '"'"'^[[:blank:]]*$'"'"'"'
+echo 'alias grep-ip="grep -o '"'"'[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'"'"'"'
+echo 'alias uncolorize='"'"'sed "s/\x1b[^m]*m//g"'"'"
+echo 'alias tolower="tr '"'"'[[:upper:]]'"'"' '"'"'[[:lower:]]'"'"'"'
+echo 'alias toupper="tr '"'"'[[:lower:]]'"'"' '"'"'[[:upper:]]'"'"'"'
+
+echo 'alias ip="ip --color"'
+echo 'alias ipb="ip --color --brief"'
+
