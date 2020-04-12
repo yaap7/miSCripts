@@ -1,0 +1,95 @@
+#!/bin/bash
+
+function show_usage() {
+  echo "Usage: $0 -a|<dbName1> [<dbName2> [...]] "
+  echo '    -a, --all : extract all DBs'
+  echo '  or:'
+  echo '    <dbName1> : DB names to backup'
+  echo 'optionnal argument:'
+  echo '    -o, --output <dir> : directory to save DBs'
+  exit 1
+}
+
+function debug() {
+  [[ "x$DEBUG" == "x1" ]] && echo "$@"
+  echo -n ''
+}
+
+function info() {
+  echo -e "\e[34mInfo\e[0m: $@"
+}
+
+function success() {
+  echo -e "\e[32mSuccess\e[0m: $@"
+}
+
+function error() {
+  echo -e "\e[31mError\e[0m: $@" >&2
+}
+
+# configuration
+DEBUG='0'
+
+# variables
+allDb='0'
+outDir='.'
+
+# argument parsing
+# see: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+POSITIONAL=()
+while [[ $# -gt 0 ]] ; do
+  key="$1"
+  case $key in
+    -h|--help)
+    show_usage
+    ;;
+    -a|--all)
+    allDb='1'
+    shift # past argument
+    ;;
+    -o|--output)
+    outDir="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -d|--debug)
+    DEBUG='1'
+    shift # past argument
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+  esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+function save_db() {
+  db="$1"
+  debug "i will save $db in dir $outDir"
+  if sudo mysqldump "$db" > "${outDir}/$(date -I)_${db}.sql" ; then
+    gzip -f -9 "${outDir}/$(date -I)_${db}.sql"
+    success "backup of $db is completed."
+  else
+    rm -f "${outDir}/$(date -I)_${db}.sql"
+    error "backup of $db failed."
+  fi
+}
+
+if [[ "x$allDb" == "x1" ]] ; then
+  sudo mysql  <<< 'show databases;' | grep -v -e '^Database$' -e '^information_schema$' -e '^mysql$' -e '^performance_schema$' | while read db; do
+    debug "db to save = $db"
+    save_db "$db"
+  done
+else
+  if [[ "${#POSITIONAL[*]}" -le "0" ]] ; then
+    error "nothing to save"
+    show_usage
+  fi
+  for db in "${POSITIONAL[@]}" ; do
+    debug "db to save $db"
+    save_db "$db"
+  done
+fi
+
+exit 0
