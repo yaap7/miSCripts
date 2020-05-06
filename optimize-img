@@ -1,0 +1,20 @@
+#!/bin/bash
+
+for img in $@ ; do
+	if file -i "$img" | grep -q 'image/jpeg;' ; then
+		mv "$img" "${img}.to-optimize"
+		~/tools/build-mozjpeg/jpegtran -outfile "$img" "${img}.to-optimize"
+		rm "${img}.to-optimize"
+		echo "image $img optimized"
+	elif file -i "$img" | grep -q 'image/png;' ; then
+		mv "$img" "${img}.to-optimize"
+		pngquant --output "$img" "${img}.to-optimize"
+		rm "${img}.to-optimize"
+		echo "image $img optimized"
+	else
+		echo "image $img not valid for optimisation (jpeg/png)"
+	fi
+done
+
+echo "finished."
+
