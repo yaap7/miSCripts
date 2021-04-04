@@ -36,12 +36,15 @@ def parse_output(output, ip):
 
 def main(args):
     # Retrieve APIvoid API key
-    api_key = open(join(dirname(sys.argv[0]),'apivoid_api_key.txt'), 'r').readline().strip()
-    print('api_key = {}'.format(api_key))
+    try:
+        api_key = open(join(dirname(sys.argv[0]), 'apivoid_api_key.txt'), 'r').readline().strip()
+    except FileNotFoundError:
+        logging.error('apivoid_api_key.txt file is missing. Please create a file and fill it with your own API key.')
+        sys.exit(1)
     # query
     for ip in args.ips:
         result = query_ipvoid(api_key, ip)
-        print('result = {}'.format(result))
+        # print('result = {}'.format(result))
         if result:
             if args.prefix:
                 with open('{}{}.log'.format(args.prefix, ip), 'w') as f:
