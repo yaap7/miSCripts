@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# reduce and optimize a bunch of pictures
+# requirements:
+# * imagemagick (to use `convert`)
+# * optimize-img (see above this script)
+
+
+function show_usage() {
+    echo "Basic usage: $0 [-s <percent>] <pic_01.jpg> [<pic_02.png>] ..."
+    echo "Example: $0 -s 50 ./*.jpg"
+    echo "-s: percent of resize (default = 50)"
+    exit 0
+}
+
+percent=50
+
+# argument parsing
+# see: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+while [[ $# -gt 0 ]] ; do
+    key="$1"
+    case $key in
+        -h)
+        show_usage
+        ;;
+        -s)
+        percent="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown option
+        POSITIONAL+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
+done
+
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+while [[ $# -gt 0 ]] ; do
+    convert "$1" -resize "${percent}%" "$1"
+    optimize-img "$1"
+    shift
+done
