@@ -4,22 +4,21 @@
 # * https://github.com/tjko/jpegoptim
 # * pngquant
 
-for img in $@ ; do
+while [[ "$#" -gt "0" ]] ; do
+	img="$1"
 	if file -i "$img" | grep -q 'image/jpeg;' ; then
 		# mv "$img" "${img}.to-optimize"
 		# ~/tools/build-mozjpeg/jpegtran -outfile "$img" "${img}.to-optimize"
 		# rm "${img}.to-optimize"
 		jpegoptim -m 75 --all-progressive "${img}"
-		echo "image $img optimized"
+		# echo "image $img optimized"
 	elif file -i "${img}" | grep -q 'image/png;' ; then
 		mv "$img" "${img}.to-optimize"
 		pngquant --output "$img" "${img}.to-optimize"
 		rm "${img}.to-optimize"
-		echo "image $img optimized"
+		# echo "image $img optimized"
 	else
-		echo "image $img not valid for optimisation (jpeg/png)"
+		echo "image $img not valid for optimisation (jpeg/png)" >&2
 	fi
+	shift
 done
-
-echo "finished."
-
