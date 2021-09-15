@@ -6,6 +6,7 @@
 
 while [[ "$#" -gt "0" ]] ; do
 	img="$1"
+	si="$(stat -c '%s' "$img")"
 	if file -i "$img" | grep -q 'image/jpeg;' ; then
 		# mv "$img" "${img}.to-optimize"
 		# ~/tools/build-mozjpeg/jpegtran -outfile "$img" "${img}.to-optimize"
@@ -20,5 +21,8 @@ while [[ "$#" -gt "0" ]] ; do
 	else
 		echo "image $img not valid for optimisation (jpeg/png)" >&2
 	fi
+	sf="$(stat -c '%s' "$img")"
+	percent="$(($sf * 100 / $si))"
+	echo "$img reduced by ${percent}% (${si} → ${sf})"
 	shift
 done
