@@ -7,22 +7,31 @@
 while [[ "$#" -gt "0" ]] ; do
 	img="$1"
 	si="$(stat -c '%s' "$img")"
+	optimized=false
 	if file -i "$img" | grep -q 'image/jpeg;' ; then
 		# mv "$img" "${img}.to-optimize"
 		# ~/tools/build-mozjpeg/jpegtran -outfile "$img" "${img}.to-optimize"
 		# rm "${img}.to-optimize"
 		jpegoptim -m 75 --all-progressive "${img}"
-		# echo "image $img optimized"
+		optimized=true
 	elif file -i "${img}" | grep -q 'image/png;' ; then
 		mv "$img" "${img}.to-optimize"
 		pngquant --output "$img" "${img}.to-optimize"
 		rm "${img}.to-optimize"
-		# echo "image $img optimized"
+		optimized=true
 	else
 		echo "image $img not valid for optimisation (jpeg/png)" >&2
 	fi
-	sf="$(stat -c '%s' "$img")"
-	percent="$(($sf * 100 / $si))"
-	echo "$img reduced by ${percent}% (${si} → ${sf})"
+	if $optimized ; then
+		sf="$(stat -c '%s' "$img")"
+		if [[ "$sf" -eq "$si" ]] ; then
+			echo "$img was already optimized."
+		elif [[ "$sf" -gt "$si" ]] ; then
+			echo "Error: $img is now bigger!" >&2
+		else
+			percent="$(( ($si - $sf) * 100 / $si))"
+			echo "$img reduced by ${percent}% (${si} → ${sf})"
+		fi
+	fi
 	shift
 done
