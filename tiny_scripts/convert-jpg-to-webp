@@ -2,9 +2,12 @@
 
 while [[ "$#" -gt 0 ]] ; do
     if echo "$1" | grep -q '\.jpg$' ; then
-        cwebp -quiet -o "${1%.jpg}.webp" "$1"
+        # skip the conversion if the webp already exists
+        if [[ ! -f "${1%.jpg}.webp" ]] ; then
+            cwebp -quiet -o "${1%.jpg}.webp" "$1"
+        fi
     else
-        echo "I can't do anything with this filename (${1})"
+        echo "I only work with .jpg files (got ${1})"
     fi
     shift
 done
