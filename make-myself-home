@@ -34,6 +34,7 @@ ln -s ~/tools/miSCripts/tiny_scripts/split-lines ./
 ln -s ~/tools/miSCripts/tiny_scripts/tolower ./
 ln -s ~/tools/miSCripts/tiny_scripts/toupper ./
 ln -s ~/tools/miSCripts/tiny_scripts/uncolorize ./
+ln -s ~/tools/miSCripts/tiny_scripts/convert-jpg-to-webp ./
 
 cat >> ~/.bashrc << EOF
 

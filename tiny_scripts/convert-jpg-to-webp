@@ -1,0 +1,10 @@
+#!/bin/bash
+
+while [[ "$#" -gt 0 ]] ; do
+    if echo "$1" | grep -q '\.jpg$' ; then
+        cwebp -quiet -o "${1%.jpg}.webp" "$1"
+    else
+        echo "I can't do anything with this filename (${1})"
+    fi
+    shift
+done
