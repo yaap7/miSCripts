@@ -33,5 +33,7 @@ while [[ "$#" -gt "0" ]] ; do
 			echo "$img reduced by ${percent}% (${si} → ${sf})"
 		fi
 	fi
+	mat2 --inplace "${img}"
+	echo "Metadata cleaned in ${img}"
 	shift
 done
