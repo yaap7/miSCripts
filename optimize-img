@@ -1,39 +1,34 @@
 #!/bin/bash
 
 # prerequisites:
-# * https://github.com/tjko/jpegoptim
+# * jpegoptim
 # * pngquant
 
 while [[ "$#" -gt "0" ]] ; do
 	img="$1"
-	si="$(stat -c '%s' "$img")"
-	optimized=false
-	if file -i "$img" | grep -q 'image/jpeg;' ; then
-		# mv "$img" "${img}.to-optimize"
-		# ~/tools/build-mozjpeg/jpegtran -outfile "$img" "${img}.to-optimize"
-		# rm "${img}.to-optimize"
-		jpegoptim -m 75 --all-progressive "${img}"
-		optimized=true
-	elif file -i "${img}" | grep -q 'image/png;' ; then
-		mv "$img" "${img}.to-optimize"
-		pngquant --output "$img" "${img}.to-optimize"
-		rm "${img}.to-optimize"
-		optimized=true
-	else
-		echo "image $img not valid for optimisation (jpeg/png)" >&2
-	fi
-	if $optimized ; then
-		sf="$(stat -c '%s' "$img")"
+	if file -i "$img" | grep -q -e 'image/jpeg;' -e 'image/png' ; then
+		cp "$img" "${img}.old"
+		if file -i "$img" | grep -q 'image/jpeg;' ; then
+			jpegoptim -q -s "${img}"
+		elif file -i "${img}" | grep -q 'image/png;' ; then
+			pngquant --ext=.png --force --strip "$img"
+		fi
+		# display effective gain
+		si="$(stat -c '%s' "${img}.old")"
+		sf="$(stat -c '%s' "${img}")"
 		if [[ "$sf" -eq "$si" ]] ; then
 			echo "$img was already optimized."
+			rm "${img}.old"
 		elif [[ "$sf" -gt "$si" ]] ; then
-			echo "Error: $img is now bigger!" >&2
+			echo "Error: $img is now bigger! Reverting..." >&2
+			mv "${img}.old" "${img}"
 		else
 			percent="$(( ($si - $sf) * 100 / $si))"
 			echo "$img reduced by ${percent}% (${si} → ${sf})"
+			rm "${img}.old"
 		fi
+	else
+		echo "$img not valid for optimisation (jpeg/png)" >&2
 	fi
-	mat2 --inplace "${img}"
-	echo "Metadata cleaned in ${img}"
 	shift
 done
