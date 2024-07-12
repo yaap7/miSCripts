@@ -1,22 +1,15 @@
 #!/bin/bash
 
+# Récupération du repo s'il n'existe pas déjà
 cd
-mkdir -p tools
-cd tools
+mkdir -p git
+cd git
 git clone https://github.com/yaap7/miSCripts || cd miSCripts && git pull
 cd
 
+# création des liens symboliques
 mkdir -p bin
 cd bin
-mkdir "exa-zip"
-cd "exa-zip"
-wget "https://github.com/ogham/exa/releases/download/v0.10.1/exa-linux-x86_64-v0.10.1.zip"
-unzip "exa-linux-x86_64-v0.10.1.zip"
-mv "bin/exa" "$HOME/bin/exa"
-if ! [[ -d ~/.bash_completions ]] ; then mkdir "$HOME/.bash_completions" ; fi
-mv "completions/exa.bash" "$HOME/.bash_completions/"
-cd ..
-rm -r "exa-zip"
 ln -s ~/tools/miSCripts/tiny_scripts/clean-conf ./
 ln -s ~/tools/miSCripts/tiny_scripts/colorize ./
 ln -s ~/tools/miSCripts/grep-hash-ntlm ./
@@ -35,9 +28,12 @@ ln -s ~/tools/miSCripts/tiny_scripts/tolower ./
 ln -s ~/tools/miSCripts/tiny_scripts/toupper ./
 ln -s ~/tools/miSCripts/tiny_scripts/uncolorize ./
 ln -s ~/tools/miSCripts/tiny_scripts/convert-jpg-to-webp ./
+ln -s ~/tools/miSCripts/optimize-img ./
+ln -s ~/tools/miSCripts/reduce-picture-from-android ./
 
+# Ajout d'une petite conf dans le bashrc
 cat >> ~/.bashrc << EOF
-
+# added by ggr from make-myself-home
 shopt -s histappend
 export HISTCONTROL=ignoredups:erasedups
 export PATH="\$HOME/bin:\$HOME/.local/bin:\$PATH"
@@ -53,12 +49,6 @@ else
     export PS1="\${PS1}"'\[\033[01;36m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '
 fi
 
-if [[ -d ~/.bash_completions ]] ; then
-    for f in ~/.bash_completions/*.bash ; do
-        source "$f"
-    done
-fi
-
 alias l="ls -lh --color=auto"
 alias ll="ls -alh --color=auto"
 alias grep="grep --color"
@@ -71,11 +61,9 @@ alias ip="ip --color"
 alias ipb="ip --color --brief"
 alias curl-headerdump='curl -D - -s -o /dev/null'
 alias copy='xclip -selection c'
+alias gs="git status"
 
 # funky prompt
 # PS1="\[\033[0;31m\]\342\224\214\342\224\200\\\$([[ \\\$? != 0 ]] && echo \"[\[\033[0;31m\]\342\234\227\[\033[0;37m\]]\342\224\200\")[\$(if [[ \${EUID} == 0 ]]; then echo '\[\033[01;31m\]root\[\033[01;33m\]@\[\033[01;96m\]\h'; else echo '\[\033[0;39m\]\u\[\033[01;33m\]@\[\033[01;96m\]\h'; fi)\[\033[0;31m\]]\342\224\200[\[\033[0;32m\]\w\[\033[0;31m\]]\n\[\033[0;31m\]\[\033[0m\]\[\e[01;33m\]\\\\$\[\e[0m\] "
-
-# funky ls
-# hash exa 2>/dev/null && alias l='exa -l --git --time-style iso' && alias ll='exa -a -l --git --time-style iso'
 
 EOF
