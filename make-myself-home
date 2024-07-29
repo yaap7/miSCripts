@@ -38,15 +38,19 @@ shopt -s histappend
 export HISTCONTROL=ignoredups:erasedups
 export PATH="\$HOME/bin:\$HOME/.local/bin:\$PATH"
 
+get_git_branch() {
+     git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/(\\1)/'
+}
+
 if [[ \$(id -u) -eq "0" ]] ; then
     export PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[01;31m\]\u\[\033[00m\]@'
 else
     export PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[00;32m\]\u\[\033[00m\]@'
 fi
 if [[ -z "\${SSH_CONNECTION}" ]] ; then
-    export PS1="\${PS1}"'\[\033[00;37m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '
+    export PS1="\${PS1}"'\[\033[00;37m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\] '"\\\$(get_git_branch)"'$ '
 else
-    export PS1="\${PS1}"'\[\033[01;36m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '
+    export PS1="\${PS1}"'\[\033[01;36m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\] '"\\\$(get_git_branch)"'$ '
 fi
 
 if [[ -d ~/.bash_completions ]] ; then
