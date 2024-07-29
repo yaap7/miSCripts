@@ -10,26 +10,26 @@ cd
 # création des liens symboliques
 mkdir -p bin
 cd bin
-ln -s ~/tools/miSCripts/tiny_scripts/clean-conf ./
-ln -s ~/tools/miSCripts/tiny_scripts/colorize ./
-ln -s ~/tools/miSCripts/grep-hash-ntlm ./
-ln -s ~/tools/miSCripts/tiny_scripts/grep-ip ./
-ln -s ~/tools/miSCripts/tiny_scripts/grep-ip.py ./
-ln -s ~/tools/miSCripts/tiny_scripts/grep-iprange ./
-ln -s ~/tools/miSCripts/tiny_scripts/grep-uuid ./
-ln -s ~/tools/miSCripts/tiny_scripts/jwt-decode ./
-ln -s ~/tools/miSCripts/new-shell ./
-ln -s ~/tools/miSCripts/tiny_scripts/ntlmsum ./
-ln -s ~/tools/miSCripts/recon-ip ./
-ln -s ~/tools/miSCripts/tiny_scripts/remove-bom ./
-ln -s ~/tools/miSCripts/tiny_scripts/remove-escape-sequences ./
-ln -s ~/tools/miSCripts/tiny_scripts/split-lines ./
-ln -s ~/tools/miSCripts/tiny_scripts/tolower ./
-ln -s ~/tools/miSCripts/tiny_scripts/toupper ./
-ln -s ~/tools/miSCripts/tiny_scripts/uncolorize ./
-ln -s ~/tools/miSCripts/tiny_scripts/convert-jpg-to-webp ./
-ln -s ~/tools/miSCripts/optimize-img ./
-ln -s ~/tools/miSCripts/reduce-picture-from-android ./
+ln -s ~/git/miSCripts/tiny_scripts/clean-conf ./
+ln -s ~/git/miSCripts/tiny_scripts/colorize ./
+ln -s ~/git/miSCripts/grep-hash-ntlm ./
+ln -s ~/git/miSCripts/tiny_scripts/grep-ip ./
+ln -s ~/git/miSCripts/tiny_scripts/grep-ip.py ./
+ln -s ~/git/miSCripts/tiny_scripts/grep-iprange ./
+ln -s ~/git/miSCripts/tiny_scripts/grep-uuid ./
+ln -s ~/git/miSCripts/tiny_scripts/jwt-decode ./
+ln -s ~/git/miSCripts/new-shell ./
+ln -s ~/git/miSCripts/tiny_scripts/ntlmsum ./
+ln -s ~/git/miSCripts/recon-ip ./
+ln -s ~/git/miSCripts/tiny_scripts/remove-bom ./
+ln -s ~/git/miSCripts/tiny_scripts/remove-escape-sequences ./
+ln -s ~/git/miSCripts/tiny_scripts/split-lines ./
+ln -s ~/git/miSCripts/tiny_scripts/tolower ./
+ln -s ~/git/miSCripts/tiny_scripts/toupper ./
+ln -s ~/git/miSCripts/tiny_scripts/uncolorize ./
+ln -s ~/git/miSCripts/tiny_scripts/convert-jpg-to-webp ./
+ln -s ~/git/miSCripts/optimize-img ./
+ln -s ~/git/miSCripts/reduce-picture-from-android ./
 
 # Ajout d'une petite conf dans le bashrc
 cat >> ~/.bashrc << EOF
@@ -39,14 +39,20 @@ export HISTCONTROL=ignoredups:erasedups
 export PATH="\$HOME/bin:\$HOME/.local/bin:\$PATH"
 
 if [[ \$(id -u) -eq "0" ]] ; then
-    export PS1='${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u\[\033[00m\]@'
+    export PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[01;31m\]\u\[\033[00m\]@'
 else
-    export PS1='${debian_chroot:+($debian_chroot)}\[\033[00;32m\]\u\[\033[00m\]@'
+    export PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[00;32m\]\u\[\033[00m\]@'
 fi
-if [[ -z "${SSH_CONNECTION}" ]] ; then
+if [[ -z "\${SSH_CONNECTION}" ]] ; then
     export PS1="\${PS1}"'\[\033[00;37m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '
 else
     export PS1="\${PS1}"'\[\033[01;36m\]\h\[\033[00m\]:\[\033[00;34m\]\w\[\033[00m\]\$ '
+fi
+
+if [[ -d ~/.bash_completions ]] ; then
+    for f in ~/.bash_completions/*.bash ; do
+        source "\$f"
+    done
 fi
 
 alias l="ls -lh --color=auto"
@@ -62,8 +68,5 @@ alias ipb="ip --color --brief"
 alias curl-headerdump='curl -D - -s -o /dev/null'
 alias copy='xclip -selection c'
 alias gs="git status"
-
-# funky prompt
-# PS1="\[\033[0;31m\]\342\224\214\342\224\200\\\$([[ \\\$? != 0 ]] && echo \"[\[\033[0;31m\]\342\234\227\[\033[0;37m\]]\342\224\200\")[\$(if [[ \${EUID} == 0 ]]; then echo '\[\033[01;31m\]root\[\033[01;33m\]@\[\033[01;96m\]\h'; else echo '\[\033[0;39m\]\u\[\033[01;33m\]@\[\033[01;96m\]\h'; fi)\[\033[0;31m\]]\342\224\200[\[\033[0;32m\]\w\[\033[0;31m\]]\n\[\033[0;31m\]\[\033[0m\]\[\e[01;33m\]\\\\$\[\e[0m\] "
 
 EOF
