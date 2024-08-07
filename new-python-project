@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+function show_usage() {
+    echo "Basic usage: $0 <project_name>"
+    exit 0
+}
+
+
+# argument parsing
+# see: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+POSITIONAL=()
+while [[ $# -gt 0 ]] ; do
+    key="$1"
+    case $key in
+        -h)
+        show_usage
+        ;;
+        *)    # unknown option
+        POSITIONAL+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+project_name="${POSITIONAL[0]}"
+[[ -z $project_name ]] && show_usage
+
+dir_template="false"
+[[ -d "${HOME}/tools/miSCripts" ]] && dir_template="${HOME}/tools/miSCripts"
+[[ -d "${HOME}/git/miSCripts" ]] && dir_template="${HOME}/git/miSCripts"
+[[ -d "${HOME}/git/yaap7/miSCripts" ]] && dir_template="${HOME}/git/yaap7/miSCripts"
+
+if [[ "x$dir_template" == "xfalse" ]] ; then
+    echo "miSCripts repo not found" >&2
+    exit 1
+fi
+
+mkdir "$project_name"
+cp -r "${dir_template}"/template_python_git/* "${project_name}/"
+cp -r "${dir_template}"/template_python_git/.* "${project_name}/"
