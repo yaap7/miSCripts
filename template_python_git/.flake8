@@ -1,3 +1,8 @@
 [flake8]
 # allow long lines
-max-line-length = 240
+max-line-length = 130
+# exclude .venv of checks
+exclude =
+    .env
+    .venv
+    venv
