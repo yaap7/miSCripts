@@ -72,5 +72,6 @@ alias ipb="ip --color --brief"
 alias curl-headerdump='curl -D - -s -o /dev/null'
 alias copy='xclip -selection c'
 alias gs="git status"
+alias dc="docker compose"
 
 EOF
