@@ -73,5 +73,7 @@ alias curl-headerdump='curl -D - -s -o /dev/null'
 alias copy='xclip -selection c'
 alias gs="git status"
 alias dc="docker compose"
+alias create-venv="python -m venv .venv"
+alias source-venv="source .venv/bin/activate"
 
 EOF
